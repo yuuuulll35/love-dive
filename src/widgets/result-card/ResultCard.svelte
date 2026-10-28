@@ -650,7 +650,7 @@
     font-size: 14px;
     line-height: 1.8;
     color: var(--ink-2);
-    text-wrap: pretty;
+    text-wrap: balance;
     word-break: keep-all;
   }
 

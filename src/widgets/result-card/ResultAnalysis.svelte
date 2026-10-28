@@ -15,6 +15,12 @@
   const topPulls = $derived(ex.pulls.slice(0, 6));
   const maxShare = $derived(Math.max(0.01, ...topPulls.map((p) => p.share), ex.buoyShare));
   const pct = (x: number) => `${Math.round(x * 100)}%`;
+  // '집착(9)과', '선(비가역성 9)을' 같은 덩어리가 줄 끝에서 쪼개지지 않게: 괄호를 앞뒤 글자에 붙이고 안쪽 공백은 줄바꿈 금지
+  const nb = (t: string) =>
+    t
+      .replace(/\s*\(([^)]*)\)/g, (m, inner: string) => `${m.startsWith(' ') ? ' ' : ''}\u2060(${inner.replace(/ /g, '\u00a0')})`)
+      // 괄호 뒤 조사('과', '을')도 붙인다
+      .replace(/\)(?=\S)/g, ')\u2060');
 
   // 상세 항목 탭: 항목별 점수 / 무게 비율
   let tab = $state<'pull' | 'axes'>('axes');
@@ -48,7 +54,7 @@
   <h3 id="why-title">두 사람의 사랑의 무게</h3>
 
   <div class="reasons">
-    {#each ex.reasons as line, i (i)}<p>{line}</p>{/each}
+    {#each ex.reasons as line, i (i)}<p>{nb(line)}</p>{/each}
   </div>
 
   <!-- 상세 항목: 12축 점수 / 무게 분해 -->
@@ -113,11 +119,11 @@
   <dl class="why">
     <div>
       <dt>칭호</dt>
-      <dd>{ex.titleReason}</dd>
+      <dd>{nb(ex.titleReason)}</dd>
     </div>
     <div>
       <dt>온도</dt>
-      <dd>{ex.tempReason}</dd>
+      <dd>{nb(ex.tempReason)}</dd>
     </div>
   </dl>
 
@@ -182,7 +188,8 @@
       font-size: 14.5px;
       line-height: 1.75;
       color: var(--ink-2);
-      text-wrap: pretty;
+      // 한두 단어만 다음 줄로 넘어가지 않게 줄 길이를 고르게
+      text-wrap: balance;
     }
     // 첫 문장은 이 관계의 한 줄 요약
     p:first-child {
@@ -311,6 +318,7 @@
       line-height: 1.45;
       color: var(--ink);
       word-break: keep-all;
+      text-wrap: balance;
     }
   }
   // 가는 네모 칸 9개가 이어진 직선 눈금
@@ -415,6 +423,7 @@
     font-size: 12px;
     line-height: 1.6;
     color: var(--ink-3);
+    text-wrap: balance;
   }
 
   // ── 칭호·온도 근거 ──
@@ -441,6 +450,7 @@
       font-size: 14px;
       line-height: 1.65;
       color: var(--ink-2);
+      text-wrap: balance;
     }
   }
 

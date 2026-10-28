@@ -86,7 +86,7 @@
     font-size: 12.5px;
     line-height: 1.6;
     color: var(--ink-faint);
-    text-wrap: pretty;
+    text-wrap: balance;
   }
 
   .label {

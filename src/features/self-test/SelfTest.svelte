@@ -440,7 +440,7 @@
       height: 46px;
       margin-bottom: 6px;
       border-radius: 50%;
-      color: var(--sea-deep);
+      color: #fff;
       background: var(--biolume);
       box-shadow: 0 0 0 6px rgba(127, 246, 228, 0.14), 0 0 30px rgba(127, 246, 228, 0.45);
       animation: pop 0.5s var(--ease-out);
