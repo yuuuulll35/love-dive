@@ -71,19 +71,37 @@
     width: 100%;
     max-width: 380px;
     margin: 0 auto;
-    padding: 22px;
-    border-radius: var(--rad);
-    background: var(--bg);
+    padding: 24px 22px;
+    border: 1.5px solid var(--frame);
+    border-radius: 6px;
+    background: var(--paper);
     color: var(--ink);
     font-family: var(--font-sans);
-    box-shadow: 0 20px 50px -24px rgba(0, 0, 0, 0.5);
+    // 결과 카드와 같은 종이·두 겹 선
+    box-shadow:
+      inset 0 0 0 3px var(--paper),
+      inset 0 0 0 4px var(--frame-soft),
+      0 20px 50px -24px rgba(0, 0, 0, 0.5);
   }
 
   h3 {
     margin: 0;
+    font-family: var(--font-kserif);
     font-size: 19px;
-    font-weight: var(--title-w);
-    letter-spacing: var(--title-ls);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-align: center;
+
+    // 양옆 가는 선과 마름모
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    &::before,
+    &::after {
+      content: '';
+      flex: 1;
+      border-top: 1px solid var(--frame-soft);
+    }
   }
 
   h4 {

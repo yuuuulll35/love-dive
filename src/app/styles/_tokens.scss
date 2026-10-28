@@ -3,6 +3,9 @@
   // 귀여운 서체는 LOVE DIVE 로고에만. 나머지는 전부 Pretendard(가변 굵기)로 깔끔하게
   --font-logo: 'Fredoka', 'Pretendard Variable', sans-serif;
   --font-sans: 'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', system-ui, sans-serif;
+  // 결과 카드(타로·우표 감성)의 숫자·칭호에만 쓰는 세리프
+  --font-serif: 'Cormorant Garamond', 'Gowun Batang', serif;
+  --font-kserif: 'Gowun Batang', serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
 
   // 하늘 (새벽빛)

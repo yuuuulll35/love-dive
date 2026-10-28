@@ -12,6 +12,10 @@
   --title-ls: -0.02em;
   --stat-bg: #fff;
   --buoy: #1597a6;
+  // 카드 종이·테두리 선
+  --paper: #fbf6ee;
+  --frame: #31508a;
+  --frame-soft: rgba(49, 80, 138, 0.28);
 }
 
 // 박광층: 맑은 푸른빛, 장식은 줄이고
@@ -22,6 +26,9 @@
   --accent: #2f78c9;
   --stat-bg: #fff;
   --title-w: 700;
+  --paper: #eef4fb;
+  --frame: #2f5591;
+  --frame-soft: rgba(47, 85, 145, 0.26);
 }
 
 // 점심해: 어두운 남색, 차분하게
@@ -37,6 +44,9 @@
   --title-w: 600;
   --title-ls: -0.01em;
   --stat-bg: rgba(255, 255, 255, 0.04);
+  --paper: #0f1731;
+  --frame: #c9d6f2;
+  --frame-soft: rgba(201, 214, 242, 0.22);
 }
 
 // 심해저·초심해: 거의 검정, 가늘고 넓게, 장식 최소
@@ -52,6 +62,9 @@
   --title-w: 500;
   --title-ls: 0.04em;
   --stat-bg: transparent;
+  --paper: #090a10;
+  --frame: #b3bacb;
+  --frame-soft: rgba(179, 186, 203, 0.2);
 }
 
 [data-tier='void'] {
@@ -65,6 +78,9 @@
   --accent: #ff4d6d;
   --title-w: 600;
   --stat-bg: transparent;
+  --paper: #070508;
+  --frame: #ff4d6d;
+  --frame-soft: rgba(255, 77, 109, 0.25);
 }
 
 [data-tier].hot {
