@@ -44,12 +44,12 @@
   }
 
   function onCopied() {
-    handOff({ kind: 'ai', text: 'AI가 답한 코드를 여기에 붙여넣어 주세요.' });
+    handOff({ kind: 'ai', text: 'OOC로 받은 결과값을 여기에 붙여넣어 주세요.' });
   }
 
   function onTested(generated: string) {
     code = generated;
-    handOff({ kind: 'test', text: '테스트 결과로 만든 코드예요.' });
+    handOff({ kind: 'test', text: '테스트 결과값이 들어갔어요.' });
   }
 
   const zoneLegend = ZONES.slice(1).map((z) => ({
@@ -105,7 +105,7 @@
       <section class="glass" id="get-code" aria-labelledby="get-code-title">
         <header>
           <span class="step mono">01</span>
-          <h2 id="get-code-title">측정 코드 받기</h2>
+          <h2 id="get-code-title">측정 코드 테스트</h2>
         </header>
 
         <div class="tabs" role="tablist" aria-label="측정 방식">
@@ -118,7 +118,7 @@
             class:on={mode === 'ai'}
             onclick={() => (mode = 'ai')}
           >
-            <span>AI에게 맡기기</span>
+            <span>OOC로 결과보기</span>
             <small>롤플레이 대화로 판정</small>
           </button>
           <button
@@ -130,7 +130,7 @@
             class:on={mode === 'test'}
             onclick={() => (mode = 'test')}
           >
-            <span>직접 테스트</span>
+            <span>직접 테스트하기</span>
             <small>24문항 · 약 3분</small>
           </button>
         </div>
@@ -146,7 +146,7 @@
       <form class="glass form" id="measure" onsubmit={submit} novalidate aria-labelledby="measure-title">
         <header>
           <span class="step mono">02</span>
-          <h2 id="measure-title">측정하기</h2>
+          <h2 id="measure-title">결과값 넣기</h2>
           <InfoTip label="바다의 층 보기">
             <p class="tip-title">바다의 층</p>
             <ol class="zones">

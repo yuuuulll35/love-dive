@@ -8,8 +8,8 @@ export interface Question {
   reverse?: boolean;
 }
 
-/** 7점 척도: 0 = 전혀 아니다 … 6 = 매우 그렇다 */
-export const SCALE_MAX = 6;
+/** 5점 척도: 0 = 전혀 아니다 … 4 = 매우 그렇다 (모바일에서 라벨을 세로로 쌓아 읽기 쉽게) */
+export const SCALE_MAX = 4;
 
 const FIRST: Question[] = [
   { axis: 'obs', text: '한쪽이 상대의 시선과 행동을 늘 붙잡아 두고 싶어 한다.' },
@@ -45,7 +45,7 @@ const SECOND: Question[] = [
 export const QUESTIONS: readonly Question[] = [...FIRST, ...SECOND];
 
 /**
- * 답(0~6) → 축 점수(0~9). 축마다 두 문항 합(0~12)을 9점 척도로 환산.
+ * 답(0~4) → 축 점수(0~9). 축마다 두 문항 합(0~8)을 9점 척도로 환산.
  * 정중앙(둘 다 '보통')은 OOC 판정의 '근거 부족 = 4'와 맞추려고 반올림을 아래로 한다.
  */
 export function scoreAnswers(answers: readonly number[]): Scores {
@@ -63,8 +63,12 @@ export function scoreAnswers(answers: readonly number[]): Scores {
 }
 
 /** 점수 → 측정 코드. 노이즈 2자리는 무작위 (예시 코드와 겹치면 다시 뽑는다) */
-export function answersToCode(answers: readonly number[], rand: () => number = Math.random): string {
-  const { noiseCharset, exampleCode } = getTables();
+export function answersToCode(
+  answers: readonly number[],
+  rand: () => number = Math.random,
+  exampleCode = getTables().exampleCode,
+): string {
+  const { noiseCharset } = getTables();
   const scores = scoreAnswers(answers);
   for (;;) {
     const noise = Array.from({ length: 2 }, () => noiseCharset[Math.floor(rand() * noiseCharset.length)]).join('');

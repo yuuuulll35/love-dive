@@ -1,4 +1,4 @@
-import { decodeCode } from '$entities/abyss';
+import { decodeCode, encodeScores } from '$entities/abyss';
 import { getTables } from '$shared/config/tables';
 import { answersToCode, QUESTIONS, scoreAnswers, SCALE_MAX } from './questions';
 
@@ -13,7 +13,7 @@ describe('셀프 테스트', () => {
   });
 
   it('전부 보통이면 모든 축 4 (근거 부족 기본값과 같음)', () => {
-    const s = scoreAnswers(QUESTIONS.map(() => 3));
+    const s = scoreAnswers(QUESTIONS.map(() => SCALE_MAX / 2));
     expect(new Set(Object.values(s))).toEqual(new Set([4]));
   });
 
@@ -25,7 +25,7 @@ describe('셀프 테스트', () => {
   });
 
   it('생성된 코드는 디코드되고 점수가 보존된다', () => {
-    const answers = QUESTIONS.map((_, i) => i % 7);
+    const answers = QUESTIONS.map((_, i) => i % (SCALE_MAX + 1));
     const code = answersToCode(answers);
     const r = decodeCode(code);
     expect(r.ok && r.scores).toEqual(scoreAnswers(answers));
@@ -44,13 +44,17 @@ describe('셀프 테스트', () => {
     const perAxis: Record<string, number[]> = {};
     QUESTIONS.forEach((q, i) => (perAxis[q.axis] ??= []).push(i));
     for (const [axis, idx] of Object.entries(perAxis)) {
-      const total = Math.round((target.scores[axis as keyof typeof target.scores] / 9) * 12);
-      const a = Math.min(6, total), b = total - a;
-      [a, b].forEach((v, k) => (answers[idx[k]] = QUESTIONS[idx[k]].reverse ? 6 - v : v));
+      const want = target.scores[axis as keyof typeof target.scores];
+      // 두 답의 합 중 원하는 축 점수를 만드는 값을 찾는다
+      const total = [...Array(SCALE_MAX * 2 + 1).keys()].find((t) => Math.ceil((t / (SCALE_MAX * 2)) * 9 - 0.5) === want);
+      if (total === undefined) continue;
+      const a = Math.min(SCALE_MAX, total), b = total - a;
+      [a, b].forEach((v, k) => (answers[idx[k]] = QUESTIONS[idx[k]].reverse ? SCALE_MAX - v : v));
     }
-    expect(scoreAnswers(answers)).toEqual(target.scores);
-    const code = answersToCode(answers, rand);
-    expect(code).not.toBe('ABYSS-9TAT-YJUZ-52DW-QK');
-    expect(code.startsWith('ABYSS-9TAT-YJUZ-52DW-')).toBe(true);
+    // 5점 척도로는 만들 수 없는 점수도 있으므로, 실제로 만들어진 점수로 예시 코드 충돌을 재현한다
+    const reachable = encodeScores(scoreAnswers(answers), 'QK');
+    const code = answersToCode(answers, rand, reachable);
+    expect(code).not.toBe(reachable);
+    expect(code.slice(0, 20)).toBe(reachable.slice(0, 20));
   });
 });
