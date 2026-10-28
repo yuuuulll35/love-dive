@@ -295,3 +295,16 @@ describe('칭호', () => {
     expect(measure(s, 'A×B').lines).toEqual(measure(s, 'b x a').lines);
   });
 });
+
+describe('OOC 프롬프트 인코딩 표', () => {
+  it('public/ooc-prompt.md 의 점수=문자 표가 치환표와 같다', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { SLOT_TABLES } = await import('../../../tools/abyss-tables.source');
+    const md = readFileSync(new URL('../../../public/ooc-prompt.md', import.meta.url), 'utf8');
+    SLOT_TABLES.forEach((table, i) => {
+      const line = md.split('\n').find((l) => l.startsWith(`S${i + 1} `));
+      const chars = [...(line ?? '').matchAll(/(\d)=([A-Z0-9])/g)].map((m) => m[2]).join('');
+      expect(chars).toBe(table);
+    });
+  });
+});
