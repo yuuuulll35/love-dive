@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { waterColor, ZONES, type MeasureResult } from '$entities/abyss';
+  import { waterColor, type MeasureResult } from '$entities/abyss';
   import { formatAtm, formatDepth } from '$shared/lib/format';
-  import { depthMood } from './mood';
+  import { depthMood, type Tier } from './mood';
 
   interface Props {
     result: MeasureResult;
@@ -16,40 +16,17 @@
   const tier = $derived(mood.tier);
 
   const rgb = (c: number[]) => `rgb(${c.join(',')})`;
+  const waterTop = $derived(rgb(waterColor(result.depth * 0.3)));
+  const waterBottom = $derived(rgb(waterColor(result.depth)));
   const hot = $derived(result.temperature.id === 'hot');
 
-  // ── 바다 단면: 도착한 층과 위아래 한 층씩, 세 층을 잘라 보여 준다 ──
-  // 얕으면 하늘·수면이 보이는 밝은 단면, 깊으면 검은 층만 남는다
-  const MAX = 10935;
-  const SHOWN = 3;
-  const idx = $derived(Math.max(0, ZONES.findIndex((z) => z.id === result.zone.id)));
-  const start = $derived(Math.max(0, Math.min(ZONES.length - SHOWN, idx - 1)));
-  const bands = $derived(
-    ZONES.slice(start, start + SHOWN).map((z) => ({
-      z,
-      from: rgb(waterColor(z.from)),
-      to: rgb(waterColor(Math.min(z.to, MAX))),
-    })),
-  );
-  // 층 안에서의 위치 (로그 스케일), 가장자리에 붙지 않게
-  const frac = $derived.by(() => {
-    const z = result.zone;
-    const to = Math.min(z.to, MAX);
-    const f = (Math.log1p(result.depth) - Math.log1p(z.from)) / (Math.log1p(to) - Math.log1p(z.from));
-    return Math.max(0.25, Math.min(0.75, f || 0));
-  });
-  const at = $derived(((idx - start + frac) / SHOWN) * 100);
-  // 수면 위 하늘: 첫 층의 위쪽 60%
-  const SURFACE = 60;
-  // 층마다 사는 작은 생물 실루엣
-  const LIFE: Record<string, string> = {
-    sunlight: 'M2 12C6 7 13 7 18 10l5-3-1 5 1 5-5-3C13 17 6 17 2 12zM26 4C29 1 34 1 38 3l3-2-1 3 1 3-3-2C34 7 29 7 26 4zM30 22c3-3 8-3 12-1l3-2-1 3 1 3-3-2c-4 2-9 2-12-1z',
-    twilight: 'M10 12C10 5 15 2 20 2s10 3 10 10c0 1-1 1-2 1H12c-1 0-2 0-2-1zM13 14c0 5-2 8 0 13M18 14c0 6 2 9 0 15M23 14c0 6-2 9 0 15M28 14c0 5 2 8 0 13',
-    midnight: 'M6 16c0-6 7-10 15-10 7 0 13 4 15 9l6-4-1 6 1 6-6-4c-2 5-8 8-15 8C13 27 6 22 6 16zM14 7C12 2 6 1 4 4',
-    abyss: 'M12 10c0-5 4-8 9-8s9 3 9 8c0 3-1 5-3 6l2 6-4-4-2 6-2-6-2 6-2-6-4 4 2-6c-2-1-3-3-3-6zM12 9C8 8 5 9 4 12c3 0 6-1 8-2zM30 9c4-1 7 0 8 3-3 0-6-1-8-2z',
-    hadal: 'M4 14c0-5 5-8 11-8 8 0 14 3 26 6-12 3-18 7-26 7-6 0-11-1-11-5z',
+  const BUBBLES: Record<Tier, readonly (readonly [number, number, number])[]> = {
+    light: [[10, 70, 14], [19, 50, 8], [7, 32, 6], [64, 22, 10], [76, 44, 6], [56, 64, 7], [86, 18, 5]],
+    soft: [[12, 66, 9], [70, 26, 7], [80, 52, 5], [22, 40, 5]],
+    deep: [[16, 60, 5], [72, 30, 4]],
+    abyss: [],
+    void: [],
   };
-
   // 심해의 발광 점
   const GLINTS = [[14, 30], [28, 66], [62, 18], [74, 58], [86, 36], [44, 74]] as const;
 
@@ -62,61 +39,37 @@
   data-tier={tier}
   style:--nw={mood.numWeight}
   style:--rad="{mood.radius}px"
+  style:--top={waterTop}
+  style:--bottom={waterBottom}
   bind:this={node}
   aria-label="측정 결과"
 >
-  <!-- ───── 바다 단면 ───── -->
-  <div
-    class="window"
-    class:with-img={!!image}
-    class:surface={start === 0}
-    style:--at="{at}%"
-    style:--sea-top="{(SURFACE / SHOWN).toFixed(2)}%"
-  >
-    {#if tier !== 'void'}
-      <div class="sea" aria-hidden="true">
-        {#each bands as b, i (b.z.id)}
-          <div
-            class="band"
-            class:here={b.z.id === result.zone.id}
-            class:top={i === 0 && start === 0}
-            style:--from={b.from}
-            style:--to={b.to}
-          >
-            {#if i > 0 && LIFE[b.z.id]}
-              <svg class="life {b.z.id}" class:left={i === SHOWN - 1} viewBox="0 0 46 30"><path d={LIFE[b.z.id]} />{#if b.z.id === 'midnight'}<circle class="lure" cx="4" cy="4" r="2.2" />{/if}</svg>
-            {/if}
-            <span class="label">{b.z.name}<small>{b.z.from ? `${formatDepth(b.z.from)}m` : '수면'}</small></span>
-          </div>
-        {/each}
-      </div>
-      {#if start === 0}
-        <svg class="wave" viewBox="0 0 400 12" preserveAspectRatio="none" aria-hidden="true">
-          <path d="M0 6 Q25 0 50 6 T100 6 T150 6 T200 6 T250 6 T300 6 T350 6 T400 6 V12 H0Z" />
-        </svg>
-      {/if}
+  <!-- ───── 물속 창 ───── -->
+  <div class="window" class:with-img={!!image}>
+    {#if result.kind === 'float'}
+      <svg class="wave" viewBox="0 0 400 24" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0 10 Q25 2 50 10 T100 10 T150 10 T200 10 T250 10 T300 10 T350 10 T400 10 V24 H0Z" />
+      </svg>
+    {:else if tier !== 'void'}
+      {#each BUBBLES[tier] as [x, y, s], i (i)}
+        <span class="bubble" style:left="{x}%" style:top="{y}%" style:width="{s}px" aria-hidden="true"></span>
+      {/each}
       {#if tier === 'abyss'}
         {#each GLINTS as [x, y], i (i)}
           <span class="glint" style:left="{x}%" style:top="{y}%" aria-hidden="true"></span>
         {/each}
       {/if}
-      {#if hot}<span class="vent" aria-hidden="true"></span>{/if}
+      <svg class="bed" viewBox="0 0 400 44" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0 24C60 10 110 28 180 20S300 6 400 22V44H0z" />
+      </svg>
+    {/if}
+    {#if hot && tier !== 'void' && result.kind !== 'float'}<span class="vent" aria-hidden="true"></span>{/if}
 
-      <!-- 측심줄: 수면(또는 위쪽 끝)에서 도착한 깊이까지. 끝에는 페어 이미지나 측심추 -->
-      <div class="line" aria-hidden="true">
-        {#if start === 0}<span class="buoy"></span>{/if}
+    <!-- 페어 이미지(배경 없는 PNG)가 측심추 자리에 측심줄로 매달린다 -->
+    {#if image && tier !== 'void'}
+      <div class="hanger" class:floating={result.kind === 'float'} aria-hidden="true">
         <span class="thread"></span>
-        <div class="weight">
-          {#if image}
-            <img class="charm" src={image} alt="" />
-          {:else}
-            <svg class="lead" viewBox="0 0 24 34">
-              <circle cx="12" cy="4" r="3" />
-              <path d="M8.5 8h7l4.4 21.4A3 3 0 0 1 17 33H7a3 3 0 0 1-2.9-3.6z" />
-              <path class="shine" d="M9.6 11.5l-2.6 17" />
-            </svg>
-          {/if}
-        </div>
+        <img class="charm" src={image} alt="" />
       </div>
     {/if}
 
@@ -125,8 +78,7 @@
     {#if result.kind === 'void'}
       <p class="depth glitch">측정 불가</p>
     {:else}
-      <p class="depth" class:long={result.depth >= 1000}>{formatDepth(result.depth)}<span class="unit">m</span></p>
-      <p class="where"><i></i>{result.zone.name}{result.kind === 'float' ? '에 떠 있어요' : '까지 가라앉았어요'}</p>
+      <p class="depth">{formatDepth(result.depth)}<span class="unit">m</span></p>
     {/if}
   </div>
 
@@ -184,241 +136,36 @@
     box-shadow: 0 30px 70px -24px rgba(0, 0, 0, 0.6);
   }
 
-  // ───── 바다 단면 ─────
+  // 표층·부유: 밝고 동글동글
+  .light .window {
+    background: linear-gradient(to bottom, #c9f3f4, var(--bottom));
+  }
+
+  // ───── 물속 창 ─────
   .window {
     position: relative;
     overflow: hidden;
     isolation: isolate;
-    padding: 18px 22px 108px;
+    padding: 18px 22px 74px;
+    background: linear-gradient(to bottom, var(--top), var(--bottom));
     color: #fff;
   }
-  .window.with-img {
-    padding-bottom: 136px;
-  }
+
   .light .window {
     color: var(--ink);
   }
+  .card:not(.light):not(.soft) .window {
+    // 어두운 테마는 창과 본문 사이 경계를 흐리게
+    background: linear-gradient(to bottom, var(--top), var(--bottom) 70%, var(--bg));
+  }
   .void .window {
-    padding-bottom: 40px;
     background:
       repeating-linear-gradient(to bottom, rgba(255, 77, 109, 0.08) 0 1px, transparent 1px 3px),
       #050407;
     color: #fff;
   }
-
-  .sea {
-    position: absolute;
-    z-index: -3;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-  }
-  .band {
-    position: relative;
-    flex: 1;
-    background: linear-gradient(to bottom, var(--from), var(--to));
-
-    & + .band {
-      border-top: 1px dashed rgba(255, 255, 255, 0.16);
-    }
-    // 첫 층이 부유층이면 위쪽은 하늘
-    &.top {
-      background: linear-gradient(
-        to bottom,
-        #ffdfe8 0%,
-        #ffeee2 calc(var(--surface, 60%) - 6%),
-        #dff5fb var(--surface, 60%),
-        var(--from) var(--surface, 60%),
-        var(--to)
-      );
-    }
-  }
-  .label {
-    position: absolute;
-    top: 7px;
-    right: 14px;
-    display: flex;
-    align-items: baseline;
-    gap: 5px;
-    font-size: 11px;
-    font-weight: 700;
-    opacity: 0.55;
-
-    small {
-      font-size: 10px;
-      font-weight: 500;
-      font-variant-numeric: tabular-nums;
-      opacity: 0.8;
-    }
-  }
-  .band.top .label {
-    top: auto;
-    bottom: 7px;
-  }
-  .band.here .label {
-    opacity: 1;
-  }
-  .light .band + .band .label {
-    color: #fff;
-  }
-
-  .life {
-    position: absolute;
-    right: 8%;
-    bottom: 12%;
-    width: 46px;
-    fill: rgba(255, 255, 255, 0.4);
-    stroke: rgba(255, 255, 255, 0.4);
-    stroke-width: 0;
-
-    &.left {
-      right: auto;
-      left: 7%;
-    }
-    &.twilight {
-      fill: rgba(190, 220, 255, 0.45);
-      stroke: rgba(190, 220, 255, 0.45);
-      stroke-width: 1.4;
-      stroke-linecap: round;
-    }
-    &.midnight {
-      stroke-width: 1.2;
-      fill: rgba(255, 255, 255, 0.22);
-      stroke: rgba(255, 255, 255, 0.3);
-    }
-    &.abyss,
-    &.hadal {
-      fill: rgba(255, 255, 255, 0.18);
-    }
-    .lure {
-      fill: #7ff6e4;
-      stroke: none;
-      filter: drop-shadow(0 0 4px #7ff6e4);
-    }
-  }
-
-  .wave {
-    position: absolute;
-    z-index: -2;
-    left: 0;
-    right: 0;
-    top: calc(var(--sea-top) - 3px);
-    width: 100%;
-    aspect-ratio: 400 / 12;
-    fill: rgba(255, 255, 255, 0.55);
-  }
-
-  // ───── 측심줄 ─────
-  .line {
-    position: absolute;
-    z-index: -1;
-    left: 70%;
-    top: 0;
-    bottom: 0;
-    width: 0;
-  }
-  .thread {
-    position: absolute;
-    left: -1px;
-    top: var(--rope-top, 0px);
-    bottom: calc(100% - var(--y));
-    width: 2px;
-    background: var(--rope);
-    box-shadow: 0 0 0 0.5px var(--rope-edge);
-  }
-  .window {
-    // 추가 창 아래로 빠져나가지 않게
-    --y: min(var(--at), calc(100% - 44px));
-  }
-  .window.with-img {
-    --y: min(var(--at), calc(100% - 112px));
-  }
-  .window.surface {
-    --rope-top: var(--sea-top);
-  }
-  .weight {
-    position: absolute;
-    top: var(--y);
-    left: 0;
-    transform: translateX(-50%);
-  }
-  .buoy {
-    position: absolute;
-    top: calc(var(--sea-top) - 9px);
-    left: -9px;
-    width: 18px;
-    aspect-ratio: 1;
-    border-radius: 50%;
-    background: linear-gradient(to bottom, #ff6b8a 50%, #fff 50%);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
-  }
-  .lead {
-    display: block;
-    width: 24px;
-    margin-top: -2px;
-    fill: #4a5468;
-    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
-
-    circle {
-      fill: none;
-      stroke: #4a5468;
-      stroke-width: 2;
-    }
-    .shine {
-      fill: none;
-      stroke: rgba(255, 255, 255, 0.35);
-      stroke-width: 1.6;
-      stroke-linecap: round;
-    }
-  }
-  .deep .lead,
-  .abyss .lead {
-    fill: #c9d2e3;
-    circle {
-      stroke: #c9d2e3;
-    }
-  }
-  .charm {
-    display: block;
-    max-width: 100px;
-    max-height: 100px;
-    object-fit: contain;
-    filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.3));
-  }
-  // 어두운 바다에서는 윤곽이 묻히지 않게 은은한 빛
-  .deep .charm,
-  .abyss .charm {
-    filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.6)) drop-shadow(0 0 14px rgba(255, 255, 255, 0.18));
-  }
-
-  .where {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    margin: 12px 0 0;
-    padding: 5px 11px 5px 9px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.16);
-    font-size: 12.5px;
-    font-weight: 700;
-    backdrop-filter: blur(6px);
-
-    i {
-      width: 7px;
-      aspect-ratio: 1;
-      border-radius: 50%;
-      background: var(--accent);
-    }
-  }
-  .light .where {
-    background: rgba(255, 255, 255, 0.7);
-  }
-
-  .vent {
-    position: absolute;
-    z-index: -2;
-    inset: 35% 0 0;
-    background: radial-gradient(ellipse 70% 60% at 30% 110%, rgba(255, 95, 60, 0.6), transparent 70%);
+  .card:has(.wave) .window {
+    background: linear-gradient(to bottom, #ffd9e3 0%, #ffe9dc 45%, #d4f1fb 66%, #63d0db 67%, #3fb7c9 100%);
   }
 
   .logo {
@@ -436,8 +183,9 @@
     font-size: 11px;
     opacity: 0.55;
   }
+
   .depth {
-    margin: 10px 0 0;
+    margin: 18px 0 0;
     font-size: clamp(58px, 19vw, 78px);
     font-weight: var(--nw);
     font-variant-numeric: tabular-nums;
@@ -453,9 +201,7 @@
   }
   .abyss .depth {
     letter-spacing: -0.01em;
-  }
-  .depth.long {
-    font-size: clamp(48px, 15vw, 64px);
+    font-size: clamp(62px, 20vw, 84px);
   }
   .glitch {
     font-weight: 800;
@@ -465,6 +211,20 @@
       -3px 0 rgba(255, 42, 85, 0.9),
       3px 0 rgba(42, 255, 234, 0.7);
   }
+
+  .bubble {
+    position: absolute;
+    z-index: -1;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255, 255, 255, 0.75);
+    background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.1) 60%);
+  }
+  .deep .bubble {
+    border-color: rgba(255, 255, 255, 0.25);
+    background: none;
+  }
+
   .glint {
     position: absolute;
     z-index: -1;
@@ -475,6 +235,47 @@
     box-shadow: 0 0 8px 2px rgba(127, 246, 228, 0.55);
     opacity: 0.7;
   }
+
+  .bed {
+    position: absolute;
+    z-index: -1;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    aspect-ratio: 400 / 44;
+    fill: rgba(255, 255, 255, 0.35);
+  }
+  .soft .bed {
+    fill: rgba(255, 255, 255, 0.14);
+  }
+  .deep .bed,
+  .abyss .bed {
+    fill: var(--bg);
+  }
+
+  .wave {
+    position: absolute;
+    z-index: -1;
+    left: 0;
+    right: 0;
+    top: 70%;
+    width: 100%;
+    aspect-ratio: 400 / 24;
+    fill: #63d0db;
+  }
+
+  .vent {
+    position: absolute;
+    z-index: -1;
+    left: 0;
+    right: 0;
+    top: 35%;
+    bottom: 0;
+    background: radial-gradient(ellipse 70% 60% at 72% 110%, rgba(255, 95, 60, 0.7), transparent 70%);
+  }
+
+
 
   // ───── 본문 ─────
   .body {
@@ -488,6 +289,44 @@
     font-size: 15px;
     font-weight: 600;
     color: var(--ink-2);
+  }
+
+  // ───── 페어 이미지 측심추 ─────
+  .window.with-img {
+    padding-bottom: 128px;
+  }
+  .hanger {
+    position: absolute;
+    z-index: -1;
+    top: 0;
+    right: 22px;
+    bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 104px;
+
+    &.floating {
+      bottom: 26px;
+    }
+  }
+  .thread {
+    flex: 1;
+    width: 2px;
+    background: var(--rope);
+    box-shadow: 0 0 0 0.5px var(--rope-edge);
+  }
+  .charm {
+    display: block;
+    max-width: 104px;
+    max-height: 104px;
+    object-fit: contain;
+    filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.3));
+  }
+  // 어두운 바다에서는 윤곽이 묻히지 않게 은은한 빛
+  .deep .charm,
+  .abyss .charm {
+    filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.6)) drop-shadow(0 0 14px rgba(255, 255, 255, 0.18));
   }
 
   .head {
