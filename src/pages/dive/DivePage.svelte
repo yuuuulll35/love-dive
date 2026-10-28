@@ -42,8 +42,10 @@
     replayKey++;
   }
 
+  // 다시 측정은 처음부터: 입력 칸(코드·페어 이름)은 입력 화면이 새로 그려지며 비워지고, 메모리에 남는 페어 이미지도 비운다
   function retry() {
     router.go('#');
+    pairImage.clear();
   }
 </script>
 
