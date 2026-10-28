@@ -3,6 +3,9 @@ import type { DecodeResult, Scores } from './types';
 
 const HEADER = 'ABYSS';
 const GROUP_SIZES = [4, 4, 4, 2] as const;
+/** 표에 없는 문자를 근거 부족으로 봐줄 최대 칸 수 */
+const MAX_FUZZY = 2;
+const FALLBACK_SCORE = 4;
 
 const SEP = '[\\s\\-‐‑‒–—―_·.:]*';
 // 해설 문장 + 코드블록을 통째로 붙여넣어도 코드 모양 덩어리를 찾아낸다 (해설에 'ABYSS'라는 말이 섞여도)
@@ -51,20 +54,24 @@ export function decodeCode(raw: string): DecodeResult {
   const noise = parts[4];
   if (![...noise].every((c) => t.noiseCharset.includes(c))) return { ok: false, error: 'ERR_FORMAT' };
 
+  // AI 가 표를 잘못 읽어 다른 줄의 문자를 넣는 일이 잦다.
+  // 1~2칸까지는 그 축만 '근거 부족 = 4'로 읽고, 그 이상이면 코드 자체를 믿을 수 없다.
   const scores = {} as Scores;
+  const fuzzy: number[] = [];
   for (let i = 0; i < 12; i++) {
     const idx = t.slotTables[i].indexOf(slots[i]);
     if (idx < 0) {
       if (import.meta.env?.DEV) console.debug(`[abyss] signal mismatch at S${i + 1}`);
-      return { ok: false, error: 'ERR_SIGNAL', slot: i + 1 };
+      fuzzy.push(i + 1);
     }
-    scores[t.slotAxes[i]] = idx;
+    scores[t.slotAxes[i]] = idx < 0 ? FALLBACK_SCORE : idx;
   }
+  if (fuzzy.length > MAX_FUZZY) return { ok: false, error: 'ERR_SIGNAL', slot: fuzzy[0] };
 
   const code = `${HEADER}-${parts[1]}-${parts[2]}-${parts[3]}-${noise}`;
   if (code === t.exampleCode) return { ok: false, error: 'ERR_EXAMPLE' };
 
-  return { ok: true, scores, code };
+  return fuzzy.length ? { ok: true, scores, code, fuzzy } : { ok: true, scores, code };
 }
 
 /** 점수 → 코드 (테스트·디버그용 왕복 인코더) */

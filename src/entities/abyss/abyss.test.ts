@@ -162,11 +162,21 @@ describe('AI 답변 통째로 붙여넣기', () => {
 });
 
 describe('#4 슬롯 문자 불일치', () => {
-  it('S1에 A → ERR_SIGNAL', () => {
-    expect(decodeCode('ABYSS-ATAT-YJUZ-52DW-QK')).toEqual({ ok: false, error: 'ERR_SIGNAL', slot: 1 });
+  it('1~2칸은 그 축만 4점(근거 부족)으로 읽는다', () => {
+    const r = decodeCode('ABYSS-ATAT-YJUZ-52DQ-QK');
+    expect(r).toMatchObject({ ok: true, fuzzy: [1, 12] });
+    if (r.ok) {
+      expect(r.scores.ruin).toBe(4);
+      expect(r.scores.sac).toBe(4);
+    }
   });
-  it('S12에 Q → ERR_SIGNAL', () => {
-    expect(decodeCode('ABYSS-9TAT-YJUZ-52DQ-QK')).toEqual({ ok: false, error: 'ERR_SIGNAL', slot: 12 });
+  it('실제 AI 출력: S11 에 다른 표의 V', () => {
+    const r = decodeCode('ABYSS-9Pdt-BkhA-9MVZ-K7');
+    expect(r).toMatchObject({ ok: true, fuzzy: [11] });
+    if (r.ok) expect(r.scores.clo).toBe(4);
+  });
+  it('3칸 이상 → ERR_SIGNAL', () => {
+    expect(decodeCode('ABYSS-ATAT-YJUZ-5ZDQ-QK')).toEqual({ ok: false, error: 'ERR_SIGNAL', slot: 1 });
   });
 });
 
