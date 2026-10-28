@@ -1,6 +1,6 @@
-<!-- 이 결과가 나온 이유: 무게 분해 · 칭호 근거 · 12축 점수 -->
+<!-- 두 사람의 사랑의 무게: 이유 문장 · 상세 항목 · 칭호·온도 근거 -->
 <script lang="ts">
-  import { AXIS_INFO, anchorFor, explain, type AxisKey, type MeasureResult } from '$entities/abyss';
+  import { explain, type MeasureResult } from '$entities/abyss';
   import { depthMood } from './mood';
 
   interface Props {
@@ -14,17 +14,10 @@
   const maxShare = $derived(Math.max(0.01, ...topPulls.map((p) => p.share), ex.buoyShare));
   const pct = (x: number) => `${Math.round(x * 100)}%`;
 
-  const GROUPS: { title: string; note: string; axes: AxisKey[] }[] = [
-    { title: '무게를 더하는 축', note: '높을수록 깊어져요', axes: ['obs', 'dep', 'clo', 'ruin', 'irr', 'den', 'lack', 'sac'] },
-    { title: '무게를 바꾸는 축', note: '다른 축을 키우거나 줄여요', axes: ['one', 'tab'] },
-    { title: '떠오르게 하는 축', note: '높을수록 얕아져요', axes: ['tru'] },
-    { title: '온도', note: '깊이와 무관, 분위기만', axes: ['tmp'] },
-  ];
-  const cells = Array.from({ length: 9 }, (_, i) => i + 1);
 </script>
 
 <section class="analysis {mood.tier}" data-tier={mood.tier} style:--rad="{mood.radius}px" aria-labelledby="why-title">
-  <h3 id="why-title">이 결과가 나온 이유</h3>
+  <h3 id="why-title">두 사람의 사랑의 무게</h3>
 
   <div class="reasons">
     {#each ex.reasons as line, i (i)}<p>{line}</p>{/each}
@@ -33,7 +26,7 @@
   <!-- 무게 분해 -->
   {#if topPulls.length}
     <div class="block">
-      <h4>무게를 만든 것</h4>
+      <h4>상세 항목</h4>
       <ul class="pulls">
         {#each topPulls as p (p.label)}
           <li class={p.kind}>
@@ -69,28 +62,6 @@
     </div>
   </dl>
 
-  <!-- 12축 점수 -->
-  <div class="block">
-    <h4>12축 점수</h4>
-    {#each GROUPS as g (g.title)}
-      <div class="group">
-        <p class="g-head">{g.title}<span>{g.note}</span></p>
-        <ul class="axes">
-          {#each g.axes as k (k)}
-            {@const v = result.scores[k]}
-            <li>
-              <span class="a-name">{AXIS_INFO[k].label}</span>
-              <span class="cells" role="img" aria-label="{AXIS_INFO[k].label} {v}점 / 9점">
-                {#each cells as c (c)}<span class="cell" class:on={c <= v}></span>{/each}
-              </span>
-              <span class="a-val">{v}</span>
-              <span class="anchor">{anchorFor(k, v)}</span>
-            </li>
-          {/each}
-        </ul>
-      </div>
-    {/each}
-  </div>
 </section>
 
 <style lang="scss">
@@ -247,70 +218,4 @@
     }
   }
 
-  // ── 12축 ──
-  .group + .group {
-    margin-top: 16px;
-  }
-
-  .g-head {
-    margin: 0 0 8px;
-    font-size: 12.5px;
-    font-weight: 700;
-    color: var(--ink-2);
-
-    span {
-      margin-left: 6px;
-      font-weight: 500;
-      color: var(--ink-3);
-    }
-  }
-
-  .axes {
-    display: grid;
-    gap: 10px;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-
-    li {
-      display: grid;
-      grid-template-columns: 4.6em 1fr 1.4em;
-      align-items: center;
-      column-gap: 10px;
-      row-gap: 2px;
-    }
-    .a-name {
-      font-size: 13.5px;
-      font-weight: 600;
-    }
-    .a-val {
-      text-align: right;
-      font-size: 13.5px;
-      font-weight: 700;
-      font-variant-numeric: tabular-nums;
-    }
-    .anchor {
-      grid-column: 2 / -1;
-      font-size: 12px;
-      color: var(--ink-3);
-    }
-  }
-
-  .cells {
-    display: grid;
-    grid-template-columns: repeat(9, 1fr);
-    gap: 3px;
-  }
-  .cell {
-    height: 8px;
-    border-radius: 2px;
-    background: var(--rule);
-
-    &.on {
-      background: var(--accent);
-    }
-  }
-  .light .cell {
-    border-radius: 999px;
-  }
 </style>
