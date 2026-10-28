@@ -1,7 +1,5 @@
 import { mount } from 'svelte';
-import '@fontsource/jua/400.css';
-import '@fontsource/gowun-dodum/400.css';
-import '@fontsource/fredoka/latin-500.css';
+import 'pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css';
 import '@fontsource/fredoka/latin-600.css';
 import '@fontsource/fredoka/latin-700.css';
 import '@fontsource/ibm-plex-mono/400.css';

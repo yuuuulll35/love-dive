@@ -1,6 +1,7 @@
 <script lang="ts">
   import { waterColor, type MeasureResult } from '$entities/abyss';
   import { formatAtm, formatDepth } from '$shared/lib/format';
+  import { lerp } from '$shared/lib/math';
 
   interface Props {
     result: MeasureResult;
@@ -11,64 +12,83 @@
   }
   let { result, image = null, node = $bindable() }: Props = $props();
 
-  const isVoid = $derived(result.kind === 'void');
-  const isFloat = $derived(result.kind === 'float');
-  const rgb = (c: number[]) => `rgb(${c.join(',')})`;
-  // 창 배경: 그 수심의 물빛. 위는 조금 밝게
-  const waterTop = $derived(rgb(waterColor(result.depth * 0.25)));
-  const waterBottom = $derived(rgb(waterColor(result.depth)));
-  const first = $derived(result.lines[0]);
-  const rest = $derived(result.lines.slice(1));
+  /**
+   * 깊이 → 분위기. 얕을수록 밝고 둥글고 굵게(가볍고 귀엽게),
+   * 깊을수록 어둡고 각지고 가늘게(무겁고 진중하게).
+   */
+  type Tier = 'light' | 'soft' | 'deep' | 'abyss' | 'void';
+  const TIER: Record<string, Tier> = {
+    float: 'light', sunlight: 'light', twilight: 'soft', midnight: 'deep', abyss: 'abyss', hadal: 'abyss', void: 'void',
+  };
+  const tier = $derived(TIER[result.zone.id]);
+  // 로그 스케일 수심 진행도 0~1
+  const r = $derived(Math.min(1, Math.log1p(result.depth) / Math.log1p(10935)));
+  const numWeight = $derived(Math.round(lerp(860, 200, r ** 1.4)));
+  const radius = $derived(Math.round(lerp(32, 10, r)));
 
-  // 장식 기포 (x%, y%, 크기px)
-  const bubbles = [
-    [12, 70, 10], [20, 52, 6], [9, 38, 4], [70, 24, 7], [80, 46, 5], [62, 62, 4],
-  ] as const;
+  const rgb = (c: number[]) => `rgb(${c.join(',')})`;
+  const waterTop = $derived(rgb(waterColor(result.depth * 0.3)));
+  const waterBottom = $derived(rgb(waterColor(result.depth)));
+  const hot = $derived(result.temperature.id === 'hot');
+
+  const BUBBLES: Record<Tier, readonly (readonly [number, number, number])[]> = {
+    light: [[10, 70, 14], [19, 50, 8], [7, 32, 6], [64, 22, 10], [76, 44, 6], [56, 64, 7], [86, 18, 5]],
+    soft: [[12, 66, 9], [70, 26, 7], [80, 52, 5], [22, 40, 5]],
+    deep: [[16, 60, 5], [72, 30, 4]],
+    abyss: [],
+    void: [],
+  };
+  // 심해의 발광 점
+  const GLINTS = [[14, 30], [28, 66], [62, 18], [74, 58], [86, 36], [44, 74]] as const;
 
   // 이미지 저장 시 height 는 복사되지 않으므로, 이 카드는 높이를 inset·aspect-ratio·padding 으로만 잡는다
 </script>
 
 <article
-  class="card t-{result.temperature.id}"
-  class:void={isVoid}
-  class:float={isFloat}
+  class="card {tier}"
+  class:hot
+  style:--nw={numWeight}
+  style:--rad="{radius}px"
+  style:--top={waterTop}
+  style:--bottom={waterBottom}
   bind:this={node}
   aria-label="측정 결과"
 >
   <!-- ───── 물속 창 ───── -->
-  <div class="window" style:--top={waterTop} style:--bottom={waterBottom}>
-    {#if isFloat}
+  <div class="window">
+    {#if result.kind === 'float'}
       <svg class="wave" viewBox="0 0 400 24" preserveAspectRatio="none" aria-hidden="true">
         <path d="M0 10 Q25 2 50 10 T100 10 T150 10 T200 10 T250 10 T300 10 T350 10 T400 10 V24 H0Z" />
       </svg>
-    {:else if !isVoid}
-      {#each bubbles as [x, y, s], i (i)}
+    {:else if tier !== 'void'}
+      {#each BUBBLES[tier] as [x, y, s], i (i)}
         <span class="bubble" style:left="{x}%" style:top="{y}%" style:width="{s}px" aria-hidden="true"></span>
       {/each}
+      {#if tier === 'abyss'}
+        {#each GLINTS as [x, y], i (i)}
+          <span class="glint" style:left="{x}%" style:top="{y}%" aria-hidden="true"></span>
+        {/each}
+      {/if}
       <svg class="bed" viewBox="0 0 400 44" preserveAspectRatio="none" aria-hidden="true">
-        <path d="M0 22C60 8 110 26 180 18S300 4 400 20V44H0z" />
+        <path d="M0 24C60 10 110 28 180 20S300 6 400 22V44H0z" />
       </svg>
     {/if}
-    {#if result.temperature.id === 'hot' && !isVoid && !isFloat}<span class="vent" aria-hidden="true"></span>{/if}
+    {#if hot && tier !== 'void' && result.kind !== 'float'}<span class="vent" aria-hidden="true"></span>{/if}
 
     <span class="thread" aria-hidden="true"></span>
-    <svg class="heart" viewBox="0 0 44 40" aria-hidden="true">
-      <circle cx="22" cy="4" r="3" fill="none" stroke="#c9d1dc" stroke-width="1.6" />
-      <path d="M22 38C11 31 3 24 3 15.5 3 9.6 7.7 5 13.4 5c3.6 0 6.8 1.8 8.6 4.6C23.8 6.8 27 5 30.6 5 36.3 5 41 9.6 41 15.5 41 24 33 31 22 38z" />
-      <ellipse cx="13.5" cy="13" rx="4" ry="3" fill="#fff" opacity="0.55" />
-    </svg>
+    {#if tier !== 'void'}
+      <svg class="heart" viewBox="0 0 44 40" aria-hidden="true">
+        <circle cx="22" cy="4" r="3" fill="none" stroke="currentColor" stroke-width="1.6" />
+        <path d="M22 38C11 31 3 24 3 15.5 3 9.6 7.7 5 13.4 5c3.6 0 6.8 1.8 8.6 4.6C23.8 6.8 27 5 30.6 5 36.3 5 41 9.6 41 15.5 41 24 33 31 22 38z" />
+      </svg>
+    {/if}
 
-    <div class="pills">
-      <span class="pill">{result.zone.name}</span>
-      <span class="pill temp">{result.temperature.label}</span>
-    </div>
+    <p class="logo">LOVE DIVE</p>
 
-    {#if isVoid}
+    {#if result.kind === 'void'}
       <p class="depth glitch">측정 불가</p>
-      <p class="atm">10,935m 아래 · 장비 응답 없음</p>
     {:else}
       <p class="depth">{formatDepth(result.depth)}<span class="unit">m</span></p>
-      <p class="atm">수압 {formatAtm(result.depth)} atm</p>
     {/if}
   </div>
 
@@ -81,8 +101,10 @@
       </div>
     {/if}
 
-    <h2 class="title">{result.title}</h2>
-    <p class="quote">{first}</p>
+    <div class="head">
+      <h2 class="title">{result.title}</h2>
+      <p class="quote">{result.titleLine}</p>
+    </div>
 
     {#if result.tags.length}
       <ul class="tags" aria-label="두드러진 축">
@@ -90,70 +112,194 @@
       </ul>
     {/if}
 
-    <div class="lines">
-      {#each rest as line, i (i)}<p>{line}</p>{/each}
-    </div>
+    <p class="desc">{result.description}</p>
 
-    <p class="brand" aria-hidden="true">
-      L<svg viewBox="0 0 20 18"><path d="M10 17C5 13.6 1 10.2 1 6.2 1 3.3 3.2 1 6 1c1.7 0 3.1.8 4 2.1C10.9 1.8 12.3 1 14 1c2.8 0 5 2.3 5 5.2 0 4-4 7.4-9 10.8z" /></svg>VE DIVE
-    </p>
+    <dl class="stats">
+      <div>
+        <dt>구간</dt>
+        <dd>{result.zone.name}</dd>
+      </div>
+      <div>
+        <dt>수압</dt>
+        <dd>{result.kind === 'void' ? '측정 불가' : `${formatAtm(result.depth)} atm`}</dd>
+      </div>
+      <div>
+        <dt>온도</dt>
+        <dd class="temp">{result.temperature.label}</dd>
+      </div>
+    </dl>
+
+    <div class="notes">
+      {#each result.lines.slice(1) as line, i (i)}<p>{line}</p>{/each}
+    </div>
   </div>
 </article>
 
 <style lang="scss">
+  // ───── 깊이별 테마 ─────
   .card {
-    --paper: #fffdf9;
-    --ink: #24304a;
-    --ink-2: #5b6680;
-    --ink-3: #9aa3b5;
-    --rule: #eee7de;
-    --accent: #3d7bf2;
-    --accent-soft: #e8f0ff;
+    --bg: #fffaf6;
+    --ink: #1f2a44;
+    --ink-2: #4f5a73;
+    --ink-3: #8e97aa;
+    --rule: #efe6dc;
+    --chip: #ffe8ee;
+    --accent: #ff5c7a;
+    --heart: #ff5c7a;
+    --heart-ring: #c9d1dc;
+    --thread-w: 2px;
+    --heart-w: 46px;
+    --title-w: 800;
+    --title-ls: -0.02em;
+    --stat-bg: #fff;
 
     width: 100%;
     max-width: 380px;
     margin: 0 auto;
     overflow: hidden;
-    border-radius: 28px;
-    background: var(--paper);
+    border-radius: var(--rad);
+    background: var(--bg);
     color: var(--ink);
-    box-shadow:
-      0 0 0 5px rgba(255, 255, 255, 0.14),
-      0 30px 70px -24px rgba(0, 0, 0, 0.65);
+    font-family: var(--font-sans);
+    box-shadow: 0 30px 70px -24px rgba(0, 0, 0, 0.6);
   }
 
-  .t-lukewarm {
-    --accent: #6a7896;
-    --accent-soft: #edf0f5;
+  // 표층·부유: 밝고 동글동글
+  .light .window {
+    background: linear-gradient(to bottom, #c9f3f4, var(--bottom));
   }
-  .t-hot {
-    --accent: #f0436a;
-    --accent-soft: #ffebf0;
+
+  // 박광층: 맑은 푸른빛, 장식은 줄이고
+  .soft {
+    --bg: #f4f8fc;
+    --rule: #dfe8f1;
+    --chip: #e3eefa;
+    --accent: #2f78c9;
+    --stat-bg: #fff;
+    --title-w: 700;
   }
+
+  // 점심해: 어두운 남색, 차분하게
+  .deep {
+    --bg: #0c1530;
+    --ink: #e9eef9;
+    --ink-2: #aab6cf;
+    --ink-3: #6e7a96;
+    --rule: rgba(233, 238, 249, 0.12);
+    --chip: rgba(143, 180, 255, 0.12);
+    --accent: #8fb4ff;
+    --heart: #e8496b;
+    --heart-ring: #7d879b;
+    --thread-w: 1.5px;
+    --heart-w: 36px;
+    --title-w: 600;
+    --title-ls: -0.01em;
+    --stat-bg: rgba(255, 255, 255, 0.04);
+  }
+
+  // 심해저·초심해: 거의 검정, 가늘고 넓게, 장식 최소
+  .abyss {
+    --bg: #07080d;
+    --ink: #e7e8ee;
+    --ink-2: #a3a7b6;
+    --ink-3: #5f6475;
+    --rule: rgba(231, 232, 238, 0.1);
+    --chip: transparent;
+    --accent: #c8cfdf;
+    --heart: #b8344f;
+    --heart-ring: #4c5260;
+    --thread-w: 1px;
+    --heart-w: 28px;
+    --title-w: 500;
+    --title-ls: 0.04em;
+    --stat-bg: transparent;
+  }
+
   .void {
+    --bg: #050407;
+    --ink: #f1eef0;
+    --ink-2: #b4a9ae;
+    --ink-3: #6f646a;
+    --rule: rgba(255, 77, 109, 0.18);
+    --chip: rgba(255, 77, 109, 0.12);
     --accent: #ff4d6d;
-    --accent-soft: #ffe9ee;
+    --title-w: 600;
+    --stat-bg: transparent;
+  }
+
+  .hot {
+    --accent-temp: #ff6a4d;
   }
 
   // ───── 물속 창 ─────
   .window {
     position: relative;
     overflow: hidden;
-    padding: 18px 20px 78px;
+    isolation: isolate;
+    padding: 18px 22px 74px;
     background: linear-gradient(to bottom, var(--top), var(--bottom));
     color: #fff;
-    isolation: isolate;
   }
 
-  .float .window {
+  .light .window {
     color: var(--ink);
-    background: linear-gradient(to bottom, #ffd9e3 0%, #ffe9dc 45%, #cfeefa 70%, #5fcfda 71%, #3fb7c9 100%);
   }
-
+  .card:not(.light):not(.soft) .window {
+    // 어두운 테마는 창과 본문 사이 경계를 흐리게
+    background: linear-gradient(to bottom, var(--top), var(--bottom) 70%, var(--bg));
+  }
   .void .window {
     background:
       repeating-linear-gradient(to bottom, rgba(255, 77, 109, 0.08) 0 1px, transparent 1px 3px),
       #050407;
+    color: #fff;
+  }
+  .card:has(.wave) .window {
+    background: linear-gradient(to bottom, #ffd9e3 0%, #ffe9dc 45%, #d4f1fb 66%, #63d0db 67%, #3fb7c9 100%);
+  }
+
+  .logo {
+    margin: 0;
+    font-family: var(--font-logo);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    opacity: 0.75;
+  }
+  .abyss .logo,
+  .deep .logo {
+    font-weight: 600;
+    letter-spacing: 0.24em;
+    font-size: 11px;
+    opacity: 0.55;
+  }
+
+  .depth {
+    margin: 18px 0 0;
+    font-size: clamp(58px, 19vw, 78px);
+    font-weight: var(--nw);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    letter-spacing: -0.03em;
+
+    .unit {
+      margin-left: 4px;
+      font-size: 0.38em;
+      font-weight: 500;
+      opacity: 0.8;
+    }
+  }
+  .abyss .depth {
+    letter-spacing: -0.01em;
+    font-size: clamp(62px, 20vw, 84px);
+  }
+  .glitch {
+    font-weight: 800;
+    font-size: clamp(44px, 13vw, 54px);
+    letter-spacing: -0.02em;
+    text-shadow:
+      -3px 0 rgba(255, 42, 85, 0.9),
+      3px 0 rgba(42, 255, 234, 0.7);
   }
 
   .bubble {
@@ -161,8 +307,23 @@
     z-index: -1;
     aspect-ratio: 1;
     border-radius: 50%;
-    border: 1.5px solid rgba(255, 255, 255, 0.55);
-    background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.6), transparent 60%);
+    border: 1.5px solid rgba(255, 255, 255, 0.75);
+    background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.1) 60%);
+  }
+  .deep .bubble {
+    border-color: rgba(255, 255, 255, 0.25);
+    background: none;
+  }
+
+  .glint {
+    position: absolute;
+    z-index: -1;
+    width: 3px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: #7ff6e4;
+    box-shadow: 0 0 8px 2px rgba(127, 246, 228, 0.55);
+    opacity: 0.7;
   }
 
   .bed {
@@ -173,7 +334,14 @@
     bottom: 0;
     width: 100%;
     aspect-ratio: 400 / 44;
-    fill: rgba(255, 255, 255, 0.12);
+    fill: rgba(255, 255, 255, 0.35);
+  }
+  .soft .bed {
+    fill: rgba(255, 255, 255, 0.14);
+  }
+  .deep .bed,
+  .abyss .bed {
+    fill: var(--bg);
   }
 
   .wave {
@@ -181,10 +349,10 @@
     z-index: -1;
     left: 0;
     right: 0;
-    top: 66%;
+    top: 70%;
     width: 100%;
     aspect-ratio: 400 / 24;
-    fill: #5fcfda;
+    fill: #63d0db;
   }
 
   .vent {
@@ -192,150 +360,92 @@
     z-index: -1;
     left: 0;
     right: 0;
+    top: 35%;
     bottom: 0;
-    top: 40%;
-    background: radial-gradient(ellipse 70% 60% at 70% 110%, rgba(255, 95, 60, 0.75), transparent 70%);
+    background: radial-gradient(ellipse 70% 60% at 72% 110%, rgba(255, 95, 60, 0.7), transparent 70%);
   }
 
   .thread {
     position: absolute;
     z-index: -1;
     top: 0;
-    right: 51px;
-    bottom: 46px;
-    width: 2px;
+    right: calc(30px + var(--heart-w) / 2 - var(--thread-w) / 2);
+    bottom: calc(14px + var(--heart-w) * 0.86);
+    width: var(--thread-w);
     background: #ff4d6d;
-    box-shadow: 0 0 8px rgba(255, 77, 109, 0.7);
+    box-shadow: 0 0 6px rgba(255, 77, 109, 0.55);
+  }
+  .card:has(.wave) .thread {
+    bottom: calc(34px + var(--heart-w) * 0.86);
+  }
+  .void .thread {
+    bottom: 0;
+    opacity: 0.6;
   }
 
   .heart {
     position: absolute;
     right: 30px;
     bottom: 14px;
-    width: 44px;
+    width: var(--heart-w);
     aspect-ratio: 44 / 40;
-    fill: #ff5c7a;
-    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+    fill: var(--heart);
+    color: var(--heart-ring);
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.25));
   }
-
-  .float .thread {
-    bottom: 58px;
+  .card:has(.wave) .heart {
+    bottom: 34px;
   }
-  .float .heart {
-    bottom: 30px;
-  }
-  .void .thread {
-    bottom: 0;
-    opacity: 0.6;
-  }
-  .void .heart {
-    display: none;
-  }
-
-  .pills {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-
-  .pill {
-    padding: 5px 11px 4px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.22);
-    border: 1px solid rgba(255, 255, 255, 0.35);
-    font-family: var(--font-display);
-    font-size: 13px;
-    line-height: 1.2;
-    color: #fff;
-  }
-  .pill.temp {
-    background: var(--accent-soft);
-    border-color: transparent;
-    color: var(--accent);
-  }
-  .float .pill:not(.temp) {
-    background: rgba(255, 255, 255, 0.75);
-    color: var(--ink);
-  }
-
-  .depth {
-    margin: 14px 0 0;
-    font-family: var(--font-num);
-    font-weight: 700;
-    font-size: clamp(56px, 18vw, 74px);
-    line-height: 1;
-    letter-spacing: -0.02em;
-    text-shadow: 0 3px 16px rgba(0, 0, 0, 0.25);
-
-    .unit {
-      margin-left: 4px;
-      font-size: 0.42em;
-      font-weight: 600;
-      opacity: 0.85;
-    }
-  }
-  .float .depth {
-    text-shadow: none;
-  }
-
-  .glitch {
-    font-family: var(--font-display);
-    font-weight: 400;
-    font-size: clamp(44px, 13vw, 54px);
-    text-shadow:
-      -3px 0 rgba(255, 42, 85, 0.9),
-      3px 0 rgba(42, 255, 234, 0.7);
-  }
-
-  .atm {
-    margin: 8px 0 0;
-    font-size: 13px;
-    opacity: 0.8;
+  .abyss .heart {
+    filter: drop-shadow(0 0 10px rgba(232, 73, 107, 0.5));
   }
 
   // ───── 본문 ─────
   .body {
     display: grid;
-    gap: 10px;
-    padding: 20px 22px 16px;
+    gap: 16px;
+    padding: 20px 22px 22px;
   }
 
   .pair {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 2px;
 
     img {
       flex: none;
-      width: 52px;
+      width: 48px;
       aspect-ratio: 1;
-      border-radius: 16px;
+      border-radius: calc(var(--rad) * 0.5);
       object-fit: cover;
-      border: 3px solid #fff;
-      box-shadow: 0 0 0 1.5px var(--rule), 0 6px 14px -6px rgba(36, 48, 74, 0.35);
+      border: 2px solid var(--bg);
+      box-shadow: 0 0 0 1.5px var(--rule);
     }
     span {
       min-width: 0;
-      font-family: var(--font-display);
-      font-size: 17px;
+      font-size: 15px;
+      font-weight: 600;
       color: var(--ink-2);
     }
   }
 
+  .head {
+    display: grid;
+    gap: 6px;
+  }
+
   .title {
     margin: 0;
-    font-family: var(--font-display);
-    font-weight: 400;
-    font-size: 36px;
-    line-height: 1.15;
-    letter-spacing: -0.01em;
+    font-size: 30px;
+    font-weight: var(--title-w);
+    line-height: 1.2;
+    letter-spacing: var(--title-ls);
   }
 
   .quote {
     margin: 0;
-    font-family: var(--font-soft);
-    font-size: 15.5px;
+    font-size: 15px;
+    font-weight: 500;
     line-height: 1.6;
     color: var(--accent);
     text-wrap: balance;
@@ -345,53 +455,82 @@
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    margin: 4px 0 2px;
+    margin: -4px 0 0;
     padding: 0;
     list-style: none;
 
     li {
-      padding: 5px 11px 4px;
+      padding: 5px 11px;
       border-radius: 999px;
-      background: var(--accent-soft);
+      background: var(--chip);
       color: var(--accent);
-      font-family: var(--font-display);
-      font-size: 13.5px;
+      font-size: 13px;
+      font-weight: 600;
       line-height: 1.2;
     }
   }
+  .abyss .tags li {
+    padding: 4px 10px;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+  }
 
-  .lines {
+  .desc {
+    margin: 0;
+    font-size: 14.5px;
+    line-height: 1.75;
+    color: var(--ink-2);
+    text-wrap: pretty;
+  }
+
+  .stats {
     display: grid;
-    gap: 4px;
-    padding-top: 12px;
-    border-top: 1.5px dashed var(--rule);
+    grid-template-columns: repeat(3, 1fr);
+    margin: 0;
+    border: 1px solid var(--rule);
+    border-radius: calc(var(--rad) * 0.5);
+    background: var(--stat-bg);
 
-    p {
+    div {
+      display: grid;
+      gap: 2px;
+      padding: 10px 12px;
+      min-width: 0;
+      & + div {
+        border-left: 1px solid var(--rule);
+      }
+    }
+    dt {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--ink-3);
+    }
+    dd {
       margin: 0;
-      font-family: var(--font-soft);
-      font-size: 14.5px;
-      line-height: 1.7;
-      color: var(--ink-2);
-      text-wrap: balance;
+      font-size: 13.5px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    .temp {
+      color: var(--accent-temp, var(--ink));
     }
   }
 
-  .brand {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 6px 0 0;
-    font-family: var(--font-num);
-    font-weight: 600;
-    font-size: 12px;
-    letter-spacing: 0.08em;
-    color: var(--ink-3);
+  .notes {
+    display: grid;
+    gap: 4px;
+    padding-top: 14px;
+    border-top: 1px dashed var(--rule);
 
-    svg {
-      width: 11px;
-      aspect-ratio: 20 / 18;
-      margin: 0 1px;
-      fill: #ff5c7a;
+    p {
+      margin: 0;
+      font-size: 13.5px;
+      line-height: 1.7;
+      color: var(--ink-2);
+      text-wrap: balance;
     }
   }
 </style>

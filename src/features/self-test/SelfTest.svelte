@@ -109,7 +109,7 @@
 
     {#key index}
       <div class="q">
-        <p class="statement soft">{current.text}</p>
+        <p class="statement">{current.text}</p>
 
         <div class="options" role="radiogroup" aria-label={current.text}>
           {#each OPTIONS as o, k (o.value)}
@@ -145,7 +145,7 @@
     <span class="badge" aria-hidden="true">
       <svg width="22" height="22" viewBox="0 0 22 22"><path d="M5 11.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
     </span>
-    <p class="title soft">측정 준비 완료</p>
+    <p class="title">측정 준비 완료</p>
     <p class="sub">결과값을 아래 칸에 넣어 두었어요.</p>
     <code class="chip mono">{code}</code>
     <Button variant="quiet" size="sm" onclick={start}>처음부터 다시 하기</Button>

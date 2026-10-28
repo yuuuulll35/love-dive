@@ -262,12 +262,12 @@
 
   {#if passage && !done}
     {#key passage.key}
-      <p class="passage soft" aria-hidden="true">{passage.text}</p>
+      <p class="passage" aria-hidden="true">{passage.text}</p>
     {/key}
   {/if}
 
   {#if kind === 'float' && frame.phase === 'bob' && time > 2}
-    <p class="passage soft float-line" aria-hidden="true">{FLOAT_HEADLINE}</p>
+    <p class="passage float-line" aria-hidden="true">{FLOAT_HEADLINE}</p>
   {/if}
 
   {#if frame.black > 0}

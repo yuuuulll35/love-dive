@@ -1,4 +1,4 @@
-import { DEFAULT_TITLE_LINES, PASSAGE_LINES, TEMP_LINES, ZONE_LINES } from '$shared/config/copy';
+import { DEFAULT_TITLE_LINES, PASSAGE_LINES, TEMP_LINES, TITLE_DESC, ZONE_LINES } from '$shared/config/copy';
 import { getTables } from '$shared/config/tables';
 import { fnv1a32 } from '$shared/lib/hash';
 import { toAtm } from '$shared/lib/format';
@@ -24,6 +24,8 @@ export interface MeasureResult {
   zone: Zone;
   title: string;
   titleLine: string;
+  /** 칭호 설명 2~3문장 */
+  description: string;
   archetypeId: string | null;
   temperature: Temperature;
   /** 상위 축 해시태그 (예: 집착, 의존) */
@@ -74,6 +76,7 @@ export function measure(scores: Scores, pairRaw = ''): MeasureResult {
     kind, scores, pair, depth, x, jitter,
     atm: toAtm(depth),
     zone, title, titleLine,
+    description: TITLE_DESC[arch?.id ?? zone.id],
     archetypeId: arch?.id ?? null,
     temperature, lines, passages,
     tags: topAxisTags(scores),

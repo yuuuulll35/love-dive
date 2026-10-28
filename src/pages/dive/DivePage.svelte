@@ -75,7 +75,7 @@
   <main class="error">
     <div class="err-card">
       <p class="mono code">NO SIGNAL</p>
-      <h1 class="soft">{outcome && !outcome.ok ? outcome.message : ERROR_COPY.signal}</h1>
+      <h1>{outcome && !outcome.ok ? outcome.message : ERROR_COPY.signal}</h1>
       <p>링크가 손상되었거나 측정 코드가 올바르지 않습니다.</p>
       <Button variant="primary" block onclick={retry}>다시 측정하기</Button>
     </div>

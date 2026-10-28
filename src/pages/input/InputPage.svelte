@@ -300,7 +300,7 @@
     position: relative;
     margin: 0;
     display: grid;
-    font-family: var(--font-num);
+    font-family: var(--font-logo);
     font-weight: 700;
     font-size: clamp(64px, 21vw, 112px);
     line-height: 0.88;
@@ -368,8 +368,8 @@
     margin-top: 10px;
     background: #2b3566;
     color: #fff;
-    font-family: var(--font-display);
-    font-size: 16px;
+    font-size: 15px;
+    font-weight: 600;
     text-decoration: none;
     box-shadow: 0 4px 0 #ffb3c6;
     transition: transform 0.15s var(--ease-out);
@@ -445,9 +445,9 @@
       h2 {
         flex: 1;
         margin: 0;
-        font-family: var(--font-display);
-        font-size: 19px;
+        font-size: 18px;
         font-weight: 700;
+        letter-spacing: -0.01em;
       }
     }
   }
@@ -551,7 +551,6 @@
   // 툴팁 내용
   .tip-title {
     margin: 0 0 8px;
-    font-family: var(--font-display);
     font-weight: 700;
     font-size: 15px;
   }

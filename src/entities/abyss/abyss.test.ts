@@ -1,7 +1,9 @@
 import { getTables } from '$shared/config/tables';
 import { decodeCode, encodeScores, normalizeCode } from './codec';
 import { computeDepth, rawMax } from './depth';
-import { matchArchetype } from './archetype';
+import { ARCHETYPES, matchArchetype } from './archetype';
+import { ZONES, VOID_ZONE } from './zones';
+import { TITLE_DESC } from '$shared/config/copy';
 import { measure } from './measure';
 import { normalizePair, pairJitter } from './pair';
 import type { Scores } from './types';
@@ -211,6 +213,15 @@ describe('칭호', () => {
   it('해시태그는 5점 이상 상위 축 최대 3개', () => {
     expect(measure(scores({ obs: 9, ruin: 8, dep: 7, clo: 6 })).tags).toEqual(['집착', '파멸성', '의존']);
     expect(measure(scores({})).tags).toEqual([]);
+  });
+  it('설명 사전이 모든 칭호·구간을 덮는다', () => {
+    for (const a of ARCHETYPES) expect(TITLE_DESC[a.id]).toBeTruthy();
+    for (const z of [...ZONES, VOID_ZONE]) expect(TITLE_DESC[z.id]).toBeTruthy();
+  });
+  it('모든 칭호에 설명이 있다', () => {
+    for (const s of [scores({ obs: 9, ruin: 8 }), scores({}), scores({ obs: 0, dep: 0, clo: 0, ruin: 0, irr: 0, den: 0, lack: 0, sac: 0, tru: 9 })]) {
+      expect(measure(s).description.length).toBeGreaterThan(20);
+    }
   });
   it('같은 입력은 같은 해설', () => {
     const s = decoded('ABYSS-QPEX-ZGT2-W47S-AA');
