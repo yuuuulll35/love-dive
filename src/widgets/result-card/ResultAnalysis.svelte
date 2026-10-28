@@ -18,7 +18,6 @@
 
   // 상세 항목 탭: 12축 점수 / 무게 분해
   let tab = $state<'pull' | 'axes'>('axes');
-  const ROLE = { weight: '무게', modifier: '증폭', buoy: '부력', tone: '온도' } as const;
   // OOC 코드와 같은 순서 (S1~S12)
   const axes = $derived(
     getTables().slotAxes.map((k) => ({
@@ -44,8 +43,8 @@
     <div class="head">
       <h4>상세 항목</h4>
       <div class="tabs" role="tablist" aria-label="상세 항목 보기">
-        <button type="button" role="tab" aria-selected={tab === 'axes'} class:on={tab === 'axes'} onclick={() => (tab = 'axes')}>12축 점수</button>
-        <button type="button" role="tab" aria-selected={tab === 'pull'} class:on={tab === 'pull'} onclick={() => (tab = 'pull')}>무게 분해</button>
+        <button type="button" role="tab" aria-selected={tab === 'axes'} class:on={tab === 'axes'} onclick={() => (tab = 'axes')}>항목별 점수</button>
+        <button type="button" role="tab" aria-selected={tab === 'pull'} class:on={tab === 'pull'} onclick={() => (tab = 'pull')}>무게 비율</button>
       </div>
     </div>
 
@@ -77,17 +76,17 @@
         {#each axes as a (a.key)}
           <li class={a.group}>
             <div class="row">
-              <span class="name">{a.label}<em>{ROLE[a.group]}</em></span>
+              <span class="name">{a.label}<small>{a.desc}</small></span>
               <span class="dots" aria-hidden="true">
                 {#each Array(9) as _, i (i)}<i class:on={i < a.score}></i>{/each}
               </span>
-              <span class="val"><b>{a.score}</b>/9</span>
+              <span class="val">{a.score}</span>
             </div>
-            <p class="desc">{a.desc} · <span class="now">{a.now}</span></p>
+            <p class="now">{a.now}</p>
           </li>
         {/each}
       </ol>
-      <p class="hint">무게 축은 깊이를 끌어내리고, 금기·일방성은 무게를 키우고, 신뢰는 떠오르게 해요. 온도는 깊이 대신 분위기를 정해요.</p>
+      <p class="hint">점수는 0~9예요. 높을수록 그 성향이 강하고, 신뢰가 높으면 덜 가라앉아요.</p>
     {/if}
   </div>
 
@@ -208,40 +207,37 @@
     }
   }
 
-  // ── 12축 점수 ──
+  // ── 항목별 점수 ──
   .axes {
     display: grid;
-    gap: 12px;
+    gap: 11px;
     margin: 0;
     padding: 0;
     list-style: none;
 
     .row {
       display: grid;
-      grid-template-columns: 6.4em 1fr auto;
+      grid-template-columns: 1fr 78px 1.2em;
       align-items: center;
       gap: 10px;
     }
     .name {
       display: flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 13.5px;
+      align-items: baseline;
+      gap: 6px;
+      min-width: 0;
+      font-size: 14px;
       font-weight: 700;
       white-space: nowrap;
 
-      em {
-        font-style: normal;
-        font-size: 10px;
-        font-weight: 600;
-        padding: 1px 5px;
-        border-radius: 4px;
-        background: var(--chip);
-        color: var(--accent);
+      small {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--ink-2);
+        opacity: 0.85;
       }
-    }
-    .buoy .name em {
-      color: var(--buoy);
     }
     // 가는 네모 칸 9개가 이어진 직선 눈금
     .dots {
@@ -264,23 +260,16 @@
       background: var(--accent-temp, var(--ink-2));
     }
     .val {
-      font-size: 12px;
-      color: var(--ink-3);
+      text-align: right;
+      font-size: 14px;
+      font-weight: 700;
       font-variant-numeric: tabular-nums;
-      b {
-        font-size: 14px;
-        color: var(--ink);
-      }
-    }
-    .desc {
-      margin: 3px 0 0;
-      font-size: 12.5px;
-      line-height: 1.55;
-      color: var(--ink-3);
     }
     .now {
+      margin: 2px 0 0;
+      font-size: 13px;
+      line-height: 1.5;
       color: var(--ink-2);
-      font-weight: 600;
     }
   }
 

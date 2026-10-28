@@ -5,18 +5,18 @@ import type { Scores } from './types';
 
 /** 축 이름·묶음·0/5/9 앵커 (OOC 프롬프트의 판정 기준과 같은 문장) */
 export const AXIS_INFO: Record<AxisKey, { label: string; group: 'weight' | 'modifier' | 'buoy' | 'tone'; desc: string; anchors: [string, string, string] }> = {
-  obs: { label: '집착', group: 'weight', desc: '상대를 곁에 붙잡아 두려는 마음', anchors: ['상대가 떠나도 괜찮음', '붙잡고 싶음', '놓아줄 수 없음, 통제하려 함'] },
-  dep: { label: '의존', group: 'weight', desc: '상대에게 기대고 버티는 정도', anchors: ['혼자서도 온전함', '상대가 큰 지지대', '상대 없으면 무너짐'] },
-  clo: { label: '폐쇄성', group: 'weight', desc: '둘만의 세계로 닫혀 있는 정도', anchors: ['각자의 세계가 넓음', '둘의 시간이 우선', '외부와 단절된 둘만의 세계'] },
-  ruin: { label: '파멸성', group: 'weight', desc: '서로를 망가뜨리며 함께 가는 정도', anchors: ['서로를 해치지 않음', '상처 주고받지만 회복함', '망가지는 걸 알면서 멈추지 않음'] },
-  irr: { label: '비가역성', group: 'weight', desc: '되돌릴 수 없는 선을 넘은 정도', anchors: ['언제든 되돌릴 수 있음', '무시 못 할 일이 있었음', '이미 돌아갈 수 없는 선을 넘음'] },
-  den: { label: '농도', group: 'weight', desc: '한 장면에 담긴 감정의 짙기', anchors: ['담백함', '감정이 짙음', '한 장면마다 감정이 넘침'] },
-  lack: { label: '결핍', group: 'weight', desc: '상대로 빈 곳을 메우는 정도', anchors: ['채울 공백 없음', '서로가 상처를 메워 줌', '상대가 유일한 구멍 메우개'] },
-  sac: { label: '희생', group: 'weight', desc: '상대를 위해 자신을 깎아 내는 정도', anchors: ['자신을 깎지 않음', '많은 걸 양보함', '자신을 버릴 각오'] },
-  one: { label: '일방성', group: 'modifier', desc: '감정이 한쪽으로 기운 정도', anchors: ['감정이 쌍방으로 대등', '한쪽이 더 기움', '완전한 일방'] },
-  tab: { label: '금기', group: 'modifier', desc: '관계를 가로막는 비밀이나 금지', anchors: ['장애물 없음', '숨겨야 할 사정 있음', '관계 자체가 금지되거나 치명적 비밀'] },
-  tru: { label: '신뢰', group: 'buoy', desc: '서로를 믿고 기대는 안정감', anchors: ['서로를 믿지 못함', '대체로 안심함', '의심 없는 안정감'] },
-  tmp: { label: '온도', group: 'tone', desc: '감정이 뜨거운지 차가운지', anchors: ['차갑고 고요한 감정', '미지근함', '뜨겁고 격렬한 감정'] },
+  obs: { label: '집착', group: 'weight', desc: '붙잡는 마음', anchors: ['상대가 떠나도 괜찮음', '붙잡고 싶음', '놓아줄 수 없음, 통제하려 함'] },
+  dep: { label: '의존', group: 'weight', desc: '기대는 정도', anchors: ['혼자서도 온전함', '상대가 큰 지지대', '상대 없으면 무너짐'] },
+  clo: { label: '폐쇄성', group: 'weight', desc: '둘만의 세계', anchors: ['각자의 세계가 넓음', '둘의 시간이 우선', '외부와 단절된 둘만의 세계'] },
+  ruin: { label: '파멸성', group: 'weight', desc: '서로를 망가뜨림', anchors: ['서로를 해치지 않음', '상처 주고받지만 회복함', '망가지는 걸 알면서 멈추지 않음'] },
+  irr: { label: '비가역성', group: 'weight', desc: '되돌릴 수 없음', anchors: ['언제든 되돌릴 수 있음', '무시 못 할 일이 있었음', '이미 돌아갈 수 없는 선을 넘음'] },
+  den: { label: '농도', group: 'weight', desc: '감정의 짙기', anchors: ['담백함', '감정이 짙음', '한 장면마다 감정이 넘침'] },
+  lack: { label: '결핍', group: 'weight', desc: '빈자리 메우기', anchors: ['채울 공백 없음', '서로가 상처를 메워 줌', '상대가 유일한 구멍 메우개'] },
+  sac: { label: '희생', group: 'weight', desc: '나를 내어줌', anchors: ['자신을 깎지 않음', '많은 걸 양보함', '자신을 버릴 각오'] },
+  one: { label: '일방성', group: 'modifier', desc: '한쪽으로 기움', anchors: ['감정이 쌍방으로 대등', '한쪽이 더 기움', '완전한 일방'] },
+  tab: { label: '금기', group: 'modifier', desc: '숨겨야 할 사정', anchors: ['장애물 없음', '숨겨야 할 사정 있음', '관계 자체가 금지되거나 치명적 비밀'] },
+  tru: { label: '신뢰', group: 'buoy', desc: '서로 믿는 마음', anchors: ['서로를 믿지 못함', '대체로 안심함', '의심 없는 안정감'] },
+  tmp: { label: '온도', group: 'tone', desc: '감정의 온도', anchors: ['차갑고 고요한 감정', '미지근함', '뜨겁고 격렬한 감정'] },
 };
 
 export const anchorFor = (axis: AxisKey, score: number) => AXIS_INFO[axis].anchors[score <= 2 ? 0 : score <= 6 ? 1 : 2];
