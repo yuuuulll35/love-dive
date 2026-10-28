@@ -84,6 +84,17 @@
         <span aria-hidden="true">DIVE</span>
       </h1>
       <p class="tagline">우리 사랑은 얼마나 무거울까?</p>
+      <a
+        class="jump"
+        href="#get-code"
+        onclick={(e) => {
+          e.preventDefault();
+          document.getElementById('get-code')?.scrollIntoView({ behavior: 'smooth' });
+        }}
+      >
+        측정하러 가기
+        <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 2v10M3 8l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      </a>
 
       <div class="hang" aria-hidden="true">
         <Plummet size={34} thread={900} />
@@ -98,18 +109,6 @@
       <span class="rise r1" aria-hidden="true"></span>
       <span class="rise r2" aria-hidden="true"></span>
       <span class="rise r3" aria-hidden="true"></span>
-      <p class="lede">두 사람의 관계를 12개의 축으로 재서<br />그 무게만큼 바다에 가라앉혀요.</p>
-      <a
-        class="jump"
-        href="#get-code"
-        onclick={(e) => {
-          e.preventDefault();
-          document.getElementById('get-code')?.scrollIntoView({ behavior: 'smooth' });
-        }}
-      >
-        측정하러 가기
-        <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 2v10M3 8l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
-      </a>
     </div>
   </section>
 
@@ -327,7 +326,7 @@
     margin: 6px 0 0;
     font-family: var(--font-sans);
     font-weight: 600;
-    font-size: clamp(17px, 4.8vw, 20px);
+    font-size: clamp(15px, 4.3vw, 18px);
     letter-spacing: -0.01em;
     color: #2b3566;
   }
@@ -351,20 +350,12 @@
     position: relative;
     display: grid;
     justify-items: center;
-    gap: 20px;
-    padding: 20px var(--gutter) 48px;
+    min-height: 56px;
+    padding: 0 var(--gutter);
     background: linear-gradient(to bottom, var(--sea-surface), var(--sea-shallow));
     text-align: center;
     color: #fff;
     overflow: hidden;
-  }
-
-  .lede {
-    margin: 0;
-    font-family: var(--font-soft);
-    font-size: 15.5px;
-    line-height: 1.75;
-    color: rgba(255, 255, 255, 0.95);
   }
 
   .jump {
@@ -373,17 +364,19 @@
     gap: 8px;
     padding: 12px 22px 11px;
     border-radius: 999px;
-    background: #fff;
-    color: #1b6f86;
+    position: relative;
+    margin-top: 10px;
+    background: #2b3566;
+    color: #fff;
     font-family: var(--font-display);
     font-size: 16px;
     text-decoration: none;
-    box-shadow: 0 4px 0 rgba(10, 70, 100, 0.25);
+    box-shadow: 0 4px 0 #ffb3c6;
     transition: transform 0.15s var(--ease-out);
 
     &:active {
       transform: translateY(2px);
-      box-shadow: 0 2px 0 rgba(10, 70, 100, 0.25);
+      box-shadow: 0 2px 0 #ffb3c6;
     }
     svg {
       animation: bob 1.8s ease-in-out infinite;
