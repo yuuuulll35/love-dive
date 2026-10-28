@@ -23,13 +23,16 @@
 
 <div class="field">
   <span class="label" id="pair-image-label">페어 이미지 (선택)</span>
+  <p class="desc" id="pair-image-desc">
+    넣으면 하트 대신 두 사람의 이미지가 줄에 매달려 바다로 다이빙해요. 결과 카드에도 함께 담겨요.
+  </p>
 
   {#if pairImage.url}
     <div class="picked">
       <img src={pairImage.url} alt="선택한 페어 이미지" />
       <div class="info">
         <span class="name">{pairImage.name}</span>
-        <span class="hint">하트 추 대신 이 이미지가 가라앉아요</span>
+        <span class="hint">이 이미지가 하트 대신 다이빙해요</span>
       </div>
       <button type="button" class="swap" onclick={() => input.click()}>바꾸기</button>
       <button type="button" class="remove" onclick={() => pairImage.clear()} aria-label="이미지 빼기">
@@ -42,6 +45,7 @@
       class="drop"
       class:dragging
       aria-labelledby="pair-image-label"
+      aria-describedby="pair-image-desc"
       onclick={() => input.click()}
       ondragover={(e) => {
         e.preventDefault();
@@ -75,6 +79,14 @@
   .field {
     display: grid;
     gap: 6px;
+  }
+
+  .desc {
+    margin: -2px 0 4px;
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: var(--ink-faint);
+    text-wrap: pretty;
   }
 
   .label {
