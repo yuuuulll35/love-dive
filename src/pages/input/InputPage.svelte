@@ -311,11 +311,11 @@
 
     .o {
       display: inline-block;
-      width: 0.7em;
+      width: 0.88em;
       aspect-ratio: 44 / 40;
-      // 하트 SVG 좌우 여백만큼 당겨 L·V 사이를 글자 간격에 맞춘다
-      margin: 0 -0.03em 0 -0.05em;
-      vertical-align: -0.06em;
+      // 하트를 키우고 L·V 쪽으로 바짝 당긴다 (V 의 왼쪽 사선 여백까지 감안)
+      margin: 0 -0.11em 0 -0.09em;
+      vertical-align: -0.1em;
       fill: #ff5c7a;
       filter: drop-shadow(4px 4px 0 #ffb3c6);
     }
