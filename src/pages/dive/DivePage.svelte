@@ -92,7 +92,7 @@
         <ResultAnalysis result={r} />
         <ShareActions
           {card}
-          filename="love-dive-{r.kind === 'void' ? 'abyss' : Math.round(r.depth) + 'm'}.png"
+          filename="love-dive-{r.kind === 'void' ? 'abyss' : Math.round(r.depth) + 'm'}.jpg"
           onretry={retry}
           onreplay={replay}
           hasImage={!!pairImage.for(token)}

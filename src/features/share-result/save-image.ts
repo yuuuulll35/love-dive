@@ -87,7 +87,8 @@ export async function renderCardBlob(node: HTMLElement): Promise<Blob> {
   const fontEmbedCSS = await buildFontEmbedCSS(node);
   const canvas = await toCanvas(node, {
     includeStyleProperties: styleProperties(),
-    pixelRatio: Math.min(3, Math.max(2, devicePixelRatio || 2)),
+    // 2배면 폰 화면에서도 선명하다. 3배는 용량만 두 배 넘게 커진다
+    pixelRatio: 2,
     fontEmbedCSS,
     cacheBust: false,
     // 그림자는 카드 밖 여백으로 찍히므로 저장본에서는 뺀다
@@ -95,7 +96,8 @@ export async function renderCardBlob(node: HTMLElement): Promise<Blob> {
     filter: (el) => !(el instanceof HTMLElement && el.dataset.noCapture !== undefined),
   });
   const framed = onBackdrop(trimBottom(canvas), node.dataset.tier ?? 'light');
-  const blob = await new Promise<Blob | null>((resolve) => framed.toBlob(resolve, 'image/png'));
+  // 카드는 불투명한 바탕 위에 올라가므로 투명도가 필요 없다 → PNG(2MB 안팎) 대신 JPEG 로 가볍게
+  const blob = await new Promise<Blob | null>((resolve) => framed.toBlob(resolve, 'image/jpeg', 0.9));
   if (!blob) throw new Error('render failed');
   return blob;
 }
@@ -159,7 +161,7 @@ function trimBottom(src: HTMLCanvasElement): HTMLCanvasElement {
 /** 모바일은 공유 시트(사진 앱에 저장 가능), 데스크톱은 다운로드 */
 export async function saveCardImage(node: HTMLElement, filename: string): Promise<'shared' | 'downloaded'> {
   const blob = await renderCardBlob(node);
-  const file = new File([blob], filename, { type: 'image/png' });
+  const file = new File([blob], filename, { type: blob.type });
   const coarse = matchMedia('(pointer: coarse)').matches;
   if (coarse && navigator.canShare?.({ files: [file] })) {
     try {
