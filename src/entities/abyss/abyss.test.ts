@@ -48,10 +48,10 @@ describe('#1 기준 벡터', () => {
       one: 4, lack: 7, clo: 6, sac: 5,
     });
   });
-  it('x ≈ 0.6855 (기획서 검산값), 원식이면 4,794m', () => {
+  it('x ≈ 0.6855 (검산값), 원식이면 4,794m', () => {
     const d = computeDepth(s);
     expect(d.x).toBeCloseTo(0.6855, 4);
-    // 기획서 원식 (k=2.2): 보정 전 값이 검산과 일치하는지
+    // 원래 지수식 (k=2.2): 보정 전 값이 검산과 일치하는지
     const raw = (10935 * (Math.exp(2.2 * d.x) - 1)) / (Math.exp(2.2) - 1);
     expect(Math.round(raw)).toBe(4794);
   });

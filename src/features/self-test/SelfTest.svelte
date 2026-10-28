@@ -153,7 +153,6 @@
 {/if}
 
 <style lang="scss">
-  // ───────── 소개 ─────────
   .intro {
     display: grid;
     gap: 16px;
@@ -196,7 +195,6 @@
     }
   }
 
-  // ───────── 진행 ─────────
   .run {
     display: grid;
     gap: 14px;
@@ -425,7 +423,6 @@
     }
   }
 
-  // ───────── 완료 ─────────
   .done {
     display: grid;
     justify-items: center;

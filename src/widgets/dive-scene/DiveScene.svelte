@@ -79,7 +79,6 @@
 
   const zoneIndex = (d: number) => (d < 5 ? 0 : ZONES.indexOf(zoneOf(d)));
 
-  // ── 파생 시각값 ──
   const rgb = (c: number[], k = 0) => `rgb(${c.map((v) => Math.min(255, v + k)).join(',')})`;
   const water = $derived.by(() => {
     const d = frame.depth;
@@ -162,7 +161,6 @@
       const w = host.clientWidth;
       const h = host.clientHeight;
 
-      // 입수
       if (!fired.impact && t >= T_IMPACT) {
         fired.impact = true;
         particles.splash(w / 2, f.surfaceY * h);
@@ -215,7 +213,6 @@
         }
       }
 
-      // 구간 통과
       const zi = zoneIndex(f.depth);
       if (zi > lastZone && f.phase === 'sink' && !instant) {
         for (let i = lastZone + 1; i <= zi; i++) enterZone(ZONES[i].id, i === zi);
@@ -261,7 +258,6 @@
       if (latest) sound.ping(1 - ZONES.indexOf(z) * 0.08);
     }
 
-    // 외부에서 skip() 호출 시
     skipImpl = () => {
       t = total + 1;
       creatures = [];
@@ -354,7 +350,6 @@
     <Plummet glow={frame.depth > 1000} {image} tilt={Math.sin(time * 1.4) * (frame.phase === 'bob' ? 7 : 3)} />
   </div>
 
-  <!-- HUD -->
   <div class="hud" class:hidden={!showHud}>
     <div class="counter" aria-hidden="true">
       <div class="num mono" data-text={counterText}>{counterText}<span class="unit">m</span></div>
@@ -662,7 +657,6 @@
     animation: fade-in 1s var(--ease-out) forwards;
   }
 
-  // ── 측정 불가 글리치 ──
   .glitching {
     animation: shake 0.12s steps(2) infinite;
 
@@ -721,7 +715,6 @@
       opacity: 0.6;
     }
   }
-  // ── 카운트다운 ──
   .count {
     position: absolute;
     left: 0;

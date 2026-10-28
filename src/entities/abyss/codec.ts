@@ -60,10 +60,7 @@ export function decodeCode(raw: string): DecodeResult {
   const fuzzy: number[] = [];
   for (let i = 0; i < 12; i++) {
     const idx = t.slotTables[i].indexOf(slots[i]);
-    if (idx < 0) {
-      if (import.meta.env?.DEV) console.debug(`[abyss] signal mismatch at S${i + 1}`);
-      fuzzy.push(i + 1);
-    }
+    if (idx < 0) fuzzy.push(i + 1);
     scores[t.slotAxes[i]] = idx < 0 ? FALLBACK_SCORE : idx;
   }
   if (fuzzy.length > MAX_FUZZY) return { ok: false, error: 'ERR_SIGNAL', slot: fuzzy[0] };

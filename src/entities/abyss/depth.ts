@@ -50,7 +50,7 @@ export function rawMax(): number {
 /**
  * x → 수심. 분포 보정 기준점 사이를 잇는다: 첫 구간은 직선, 나머지는 기하(지수) 보간이라
  * 깊어질수록 같은 무게 차이가 더 큰 수심 차이가 된다. 기준점은 tools/abyss-tables.source.ts.
- * (기획서 원식 MAX·(e^(k·x)−1)/(e^k−1) 은 분포가 점심해에 몰려 보정으로 대체)
+ * (원래 지수식 MAX·(e^(k·x)−1)/(e^k−1) 은 분포가 점심해에 몰려 보정으로 대체)
  */
 export function mapDepth(x: number): number {
   const pts = getTables().calibration;

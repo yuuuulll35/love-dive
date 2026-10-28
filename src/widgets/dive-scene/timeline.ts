@@ -97,7 +97,6 @@ export function frameAt(t: number, target: number, kind: MeasureKind, hot: boole
     return { ...base, ...d, speed };
   }
 
-  // ── 부유 ──
   if (kind === 'float') {
     const u = t - T_DROP;
     const bobY = SURFACE_START_Y - 0.01 + Math.sin(u * 2.4) * 0.008;
@@ -113,7 +112,6 @@ export function frameAt(t: number, target: number, kind: MeasureKind, hot: boole
   const sinkT = sinkDuration(target, kind);
   const ts = t - T_DROP;
 
-  // ── 측정 불가 ──
   if (kind === 'void') {
     if (ts < sinkT) {
       // 감속 없이 계속 가속: 바닥이 없다
@@ -137,7 +135,6 @@ export function frameAt(t: number, target: number, kind: MeasureKind, hot: boole
     };
   }
 
-  // ── 일반 ──
   if (ts < sinkT) {
     const u = ts / sinkT;
     const depth = target * easeDive(u);

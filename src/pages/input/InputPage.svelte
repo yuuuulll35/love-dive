@@ -69,7 +69,6 @@
 </script>
 
 <main class="page">
-  <!-- ───────── 하늘 · 수면 ───────── -->
   <section class="hero" aria-labelledby="site-title">
     <div class="sky">
       {#each SPARKS as [x, y, sz, c], i (i)}
@@ -123,7 +122,6 @@
     </div>
   </section>
 
-  <!-- ───────── 물속 ───────── -->
   <div class="sea">
     <div class="col">
       <section class="glass paper" id="get-code" aria-labelledby="get-code-title">
@@ -244,7 +242,6 @@
     background: var(--sea-deep);
   }
 
-  // ───────── 히어로 ─────────
   .hero {
     position: relative;
     display: grid;
@@ -456,7 +453,6 @@
     animation-duration: 8s;
   }
 
-  // ───────── 물속 ─────────
   .sea {
     position: relative;
     padding: 8px var(--gutter) calc(64px + env(safe-area-inset-bottom));

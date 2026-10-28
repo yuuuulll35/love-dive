@@ -79,7 +79,6 @@ export function explain(result: MeasureResult): Explanation {
   const buoy = coef.buoy * a('tru') * (1 - s.clo / coef.buoyClo);
   const buoyShare = total > 0 ? Math.min(1, buoy / total) : buoy > 0 ? 1 : 0;
 
-  // ── 이유 문장 ──
   const reasons: string[] = [];
   const topAxes = [...WEIGHT_AXES].sort((x, y) => w[y] * a(y) - w[x] * a(x)).filter((k) => s[k] > 0);
 
@@ -112,7 +111,6 @@ export function explain(result: MeasureResult): Explanation {
     reasons.push(`신뢰가 낮아(${s.tru}) 떠오르게 할 힘이 거의 없었다.`);
   }
 
-  // ── 칭호 근거 ──
   let titleReason: string;
   if (result.kind === 'float') titleReason = `가라앉지 않은 관계에는 「${result.title}」${particle(result.title, '이', '가')} 붙는다.`;
   else if (result.kind === 'void') titleReason = `측정 범위를 벗어난 관계에는 「${result.title}」${particle(result.title, '이', '가')} 붙는다.`;

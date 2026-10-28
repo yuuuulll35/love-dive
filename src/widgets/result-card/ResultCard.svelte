@@ -44,9 +44,7 @@
     abyss: [],
     void: [],
   };
-  // 마린 스노우
   const SNOW = [[10, 24], [20, 60], [30, 38], [38, 82], [48, 16], [56, 66], [64, 42], [72, 86], [80, 22], [88, 54], [92, 76], [44, 50]] as const;
-  // 심해의 발광 점
   const GLINTS = [[16, 30], [28, 68], [64, 18], [76, 60], [86, 36], [44, 78]] as const;
 
   // 창 안에서 반짝이는 별빛 [x%, y%, 크기px]
@@ -58,7 +56,6 @@
     void: [],
   };
 
-  // 네 갈래 반짝이
   const STAR = 'M12 0C12.8 7 17 11.2 24 12 17 12.8 12.8 17 12 24 11.2 17 7 12.8 0 12 7 11.2 11.2 7 12 0Z';
 
   // 이미지 저장 시 height 는 복사되지 않으므로, 이 카드는 높이를 inset·aspect-ratio·padding 으로만 잡는다
@@ -79,14 +76,12 @@
       <svg class="corner {c}" viewBox="0 0 24 24" aria-hidden="true"><path d={STAR} /></svg>
     {/each}
 
-    <!-- ───── 카드 번호 ───── -->
     <header class="arcana">
       <span class="rule" aria-hidden="true"></span>
       <span class="num">{numeral}</span>
       <span class="rule" aria-hidden="true"></span>
     </header>
 
-    <!-- ───── 아치 창 ───── -->
     <div class="arch-wrap">
       {#each ['l', 'r'] as side (side)}
         <svg class="spandrel {side}" viewBox="0 0 40 40" aria-hidden="true">
@@ -144,7 +139,6 @@
       </div>
     </div>
 
-    <!-- ───── 이름패 ───── -->
     <div class="plate">
       <h2 class="title">{result.title}</h2>
     </div>
@@ -161,7 +155,7 @@
       <p class="pair">{result.pair}</p>
     {/if}
 
-    <!-- ───── 뒷면: 풀이 (이미지 저장에서는 빼고 카드 앞면만 남긴다) ───── -->
+    <!-- 절취선 아래 풀이는 이미지 저장에서 빠진다 -->
     <div class="tear" aria-hidden="true" data-no-capture></div>
 
     <div class="reading" data-no-capture>
@@ -255,7 +249,6 @@
     &.br { bottom: 8px; right: 8px; }
   }
 
-  // ───── 카드 번호 ─────
   .arcana {
     display: flex;
     align-items: center;
@@ -277,7 +270,6 @@
     }
   }
 
-  // ───── 아치 창 ─────
   .arch-wrap {
     position: relative;
     width: 100%;
@@ -515,7 +507,6 @@
     background: radial-gradient(ellipse 70% 60% at 50% 115%, rgba(255, 95, 60, 0.6), transparent 70%);
   }
 
-  // ───── 페어 이미지 ─────
   .hanger {
     position: absolute;
     z-index: -1;
@@ -550,7 +541,6 @@
     filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.6)) drop-shadow(0 0 14px rgba(255, 255, 255, 0.18));
   }
 
-  // ───── 이름패 ─────
   .plate {
     position: relative;
     margin-top: 16px;
@@ -600,7 +590,6 @@
     opacity: 0.85;
   }
 
-  // ───── 풀이 ─────
   .tear {
     width: calc(100% + 36px);
     margin: 18px 0 0;

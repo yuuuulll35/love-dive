@@ -57,7 +57,7 @@
     {#each ex.reasons as line, i (i)}<p>{nb(line)}</p>{/each}
   </div>
 
-  <!-- 상세 항목: 12축 점수 / 무게 분해 -->
+  <!-- 상세 항목: 항목별 점수 / 무게 비율 -->
   <div class="block">
     <div class="head">
       <h4>상세 항목</h4>
@@ -240,7 +240,6 @@
     }
   }
 
-  // ── 항목별 점수: 하는 일별 묶음 + 작은 카드 ──
   .group + .group {
     margin-top: 16px;
   }
@@ -346,7 +345,6 @@
     background: var(--accent-temp, var(--ink-2));
   }
 
-  // ── 무게 분해 ──
   .pulls {
     display: grid;
     gap: 9px;
@@ -426,7 +424,6 @@
     text-wrap: balance;
   }
 
-  // ── 칭호·온도 근거 ──
   .why {
     display: grid;
     gap: 10px;

@@ -111,7 +111,7 @@ export const ZONE_LINES: Record<string, readonly string[]> = {
   ],
 };
 
-/** 침강 연출 중 구간 경계 통과 문구 (기획서 5절) */
+/** 침강 연출 중 구간 경계 통과 문구 */
 export const PASSAGE_LINES: Record<string, readonly string[]> = {
   sunlight: ['햇빛이 아직 닿는다', '수면 아래로, 천천히'],
   twilight: ['서로가 유일한 빛이 되기 시작한다', '푸른빛이 마지막으로 남는다'],
