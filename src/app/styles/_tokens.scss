@@ -1,0 +1,41 @@
+// 디자인 토큰 — 사이트는 수중 몰입형이라 단일(다크 수중) 테마. 하늘 영역만 밝다.
+:root {
+  --font-serif: 'Gowun Batang', 'Noto Serif KR', 'Nanum Myeongjo', serif;
+  --font-sans: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  // 하늘 (새벽빛)
+  --sky-top: #f4ebe4;
+  --sky-mid: #e7e6e6;
+  --sky-bottom: #cfe5ec;
+  --sky-ink: #0f2b3b;
+  --sky-ink-dim: rgba(15, 43, 59, 0.62);
+
+  // 물
+  --sea-surface: #40c4ce;
+  --sea-shallow: #1896b0;
+  --sea-twilight: #0a5884;
+  --sea-deep: #081a42;
+  --sea-abyss: #030610;
+
+  --ink: #eaf3f6;
+  --ink-dim: rgba(234, 243, 246, 0.66);
+  --ink-faint: rgba(234, 243, 246, 0.38);
+  --line: rgba(234, 243, 246, 0.16);
+  --line-strong: rgba(234, 243, 246, 0.32);
+  --glass: rgba(6, 22, 48, 0.42);
+  --glass-strong: rgba(4, 14, 32, 0.72);
+
+  // 붉은 실 (측심줄) — 유일한 강조색
+  --thread: #ff4d6d;
+  --thread-soft: rgba(255, 77, 109, 0.18);
+  --biolume: #7ff6e4;
+  --vent: #ff6a3d;
+  --danger: #ff8a8a;
+
+  --radius: 14px;
+  --radius-sm: 10px;
+  --gutter: 16px;
+  --maxw: 520px;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
