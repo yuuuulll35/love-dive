@@ -13,17 +13,17 @@ export interface Zone {
 }
 
 export type CreatureId =
-  | 'school' | 'turtle' | 'ray' | 'whale'
+  | 'school' | 'tropical' | 'dolphin' | 'turtle' | 'ray' | 'whale'
   | 'jelly' | 'lantern' | 'siphon'
-  | 'angler' | 'vampire'
+  | 'angler' | 'vampire' | 'sperm'
   | 'squid' | 'dumbo'
   | 'snailfish' | 'amphipod';
 
 /** 연출 중 구간마다 계속 지나가는 생물 풀 (첫 번째가 구간 대표) */
 export const ZONE_LIFE: Record<string, readonly CreatureId[]> = {
-  sunlight: ['school', 'turtle', 'ray', 'whale', 'school'],
+  sunlight: ['tropical', 'school', 'dolphin', 'turtle', 'tropical', 'ray', 'school'],
   twilight: ['jelly', 'lantern', 'siphon', 'whale', 'jelly'],
-  midnight: ['angler', 'siphon', 'vampire', 'lantern'],
+  midnight: ['angler', 'siphon', 'vampire', 'lantern', 'sperm'],
   abyss: ['squid', 'dumbo', 'vampire', 'siphon'],
   hadal: ['snailfish', 'amphipod', 'dumbo', 'amphipod'],
 };

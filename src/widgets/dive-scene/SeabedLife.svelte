@@ -14,6 +14,20 @@
     <svg class="i" style:--w="84px" viewBox="0 0 84 90"><path class="coral-a" d="M40 90V60c-12-4-18-14-18-26 0-6 4-8 6-4 2 8 6 14 12 16V30c0-8 8-8 8 0v20c6-2 10-8 12-16 2-4 6-2 6 4 0 12-6 22-18 26v26z" /></svg>
     <svg class="i sway" style:--w="40px" viewBox="0 0 40 110"><path class="grass" d="M8 110C2 80 12 50 6 10c8 30 4 60 10 100M20 110c-4-34 6-60 4-100 6 30 0 70 4 100M30 110c0-30 10-50 6-80 8 24 0 56 2 80" /></svg>
     <svg class="i" style:--w="34px" viewBox="0 0 40 40"><path class="star" d="M20 2l5 12 13 1-10 8 4 13-12-7-12 7 4-13-10-8 13-1z" /></svg>
+    <!-- 말미잘과 흰동가리 -->
+    <svg class="i" style:--w="76px" viewBox="0 0 80 80">
+      <g class="anemone">
+        {#each [-36, -22, -10, 2, 14, 26, 38] as a, i (i)}
+          <path d="M40 74C40 56 {40 + a * 0.6} 40 {40 + a} 26" style:animation-delay="{-i * 0.2}s" />
+        {/each}
+      </g>
+      <ellipse class="anemone-base" cx="40" cy="74" rx="20" ry="6" />
+      <g class="clown">
+        <path class="clown-body" d="M28 30c4-6 14-7 20-2l6-4-1 6 1 6-6-4c-6 5-16 4-20-2z" />
+        <path class="clown-stripe" d="M33 25v10M42 25v10" />
+        <circle class="clown-eye" cx="31" cy="29" r="1.1" />
+      </g>
+    </svg>
     <svg class="i" style:--w="70px" viewBox="0 0 70 60"><path class="coral-b" d="M6 60c0-20 6-30 14-30-4-10 2-20 10-16 4-10 16-8 16 2 10-2 16 8 12 16 8 4 8 18 4 28z" /><circle class="polyp" cx="22" cy="30" r="2" /><circle class="polyp" cx="38" cy="18" r="2" /><circle class="polyp" cx="52" cy="34" r="2" /></svg>
     <svg class="i sway" style:--w="34px" viewBox="0 0 40 100"><path class="grass" d="M10 100C4 70 14 40 8 6c8 30 4 60 10 94M26 100c-2-30 8-50 4-86 6 26 0 62 2 86" /></svg>
   {:else if zone === 'twilight'}
@@ -87,6 +101,31 @@
   .star {
     fill: #ffcf5c;
   }
+  .anemone path {
+    fill: none;
+    stroke: #ff9ec4;
+    stroke-width: 5;
+    stroke-linecap: round;
+    animation: tentacle 2.4s ease-in-out infinite alternate;
+    transform-origin: 50% 100%;
+    transform-box: fill-box;
+  }
+  .anemone-base {
+    fill: #e9799f;
+  }
+  .clown {
+    animation: hover 3s ease-in-out infinite;
+  }
+  .clown-body {
+    fill: #ff8a3d;
+  }
+  .clown-stripe {
+    stroke: #fff;
+    stroke-width: 2.2;
+  }
+  .clown-eye {
+    fill: #1b2333;
+  }
 
   // 박광층: 보랏빛 부채산호·해면
   .fan {
@@ -156,6 +195,16 @@
     stroke-width: 1;
   }
 
+  @keyframes tentacle {
+    to {
+      transform: rotate(8deg);
+    }
+  }
+  @keyframes hover {
+    50% {
+      transform: translate(8px, -4px);
+    }
+  }
   @keyframes sway {
     from {
       transform: rotate(-4deg);

@@ -26,6 +26,11 @@
   ] as const;
   const lantern = [[0, 20, 1], [30, 6, 0.8], [38, 34, 0.9], [66, 18, 0.75], [74, 42, 0.85], [100, 28, 0.8]] as const;
   const fish = 'M0 8C5 2 15 1 22 6l7-4-2 6 2 6-7-4C15 15 5 14 0 8z';
+  // x, y, 크기, 색
+  const tropical = [
+    [0, 20, 1.15, 'y'], [30, 4, 0.95, 'b'], [36, 36, 1, 'o'], [66, 18, 1.1, 'y'], [72, 46, 0.9, 'b'],
+    [100, 6, 0.85, 'o'], [106, 30, 1, 'y'], [134, 18, 0.9, 'b'], [138, 44, 0.8, 'o'],
+  ] as const;
 </script>
 
 <div
@@ -44,6 +49,25 @@
         {#each school as [x, y, s], i (i)}
           <path class="fish" d={fish} transform="translate({x} {y}) scale({s})" style:animation-delay="{-i * 0.13}s" />
         {/each}
+      </svg>
+    {:else if id === 'tropical'}
+      <!-- 알록달록 열대어 떼 -->
+      <svg viewBox="-4 -4 170 74">
+        {#each tropical as [x, y, s, c], i (i)}
+          <g transform="translate({x} {y}) scale({s})">
+            <path class="fish t-{c}" d={fish} style:animation-delay="{-i * 0.17}s" />
+            <path class="stripe" d="M9 3v10M15 4v8" />
+            <circle class="t-eye" cx="4.5" cy="7" r="1.1" />
+          </g>
+        {/each}
+      </svg>
+    {:else if id === 'dolphin'}
+      <svg viewBox="0 0 180 80">
+        <path class="dolphin-fin" d="M80 22c4-12 12-18 22-20-4 8-6 14-4 22z" />
+        <path class="dolphin-body" d="M4 40c6-4 14-6 22-6 10-10 30-14 54-12 30 2 56 12 74 22l14-12-2 14 10 12-18-6c-22 10-50 16-80 14-20-2-36-8-46-16-10 0-20-2-28-10z" />
+        <path class="dolphin-belly" d="M26 42c16 8 40 12 66 10 22-2 42-8 58-14-18 10-42 18-70 18-22 0-42-6-54-14z" />
+        <path class="dolphin-fin" d="M70 52c0 10 6 18 16 20-4-6-6-12-4-18z" />
+        <circle class="eye" cx="30" cy="34" r="2" />
       </svg>
     {:else if id === 'turtle'}
       <svg viewBox="0 0 130 76">
@@ -65,14 +89,32 @@
         <path class="horn" d="M74 10c-4-6-8-8-12-6M94 10c4-6 8-8 12-6" />
       </svg>
     {:else if id === 'whale'}
-      <svg viewBox="0 0 320 110">
-        <path
-          class="whale-body"
-          d="M8 54C30 32 96 24 170 30c50 4 90 12 112 16l26-20-6 26 8 26-28-16c-32 8-82 18-134 18C82 80 30 74 8 54z"
-        />
-        <path class="whale-body" d="M96 68c10 18 30 30 52 34-14-12-26-24-34-34z" />
-        <path class="grooves" d="M20 62c40 8 90 10 140 6M26 68c40 6 80 8 120 4" />
-        <circle class="eye" cx="44" cy="52" r="2.4" />
+      <!-- 혹등고래: 긴 가슴지느러미, 배 주름, 꼬리지느러미 -->
+      <svg viewBox="0 0 340 130">
+        <g class="tail">
+          <path class="whale-body" d="M282 52c8-8 18-20 32-28 6 0 8 4 4 8-8 6-14 12-18 22 6 6 14 14 24 20 4 4 0 8-6 6-14-6-26-14-36-20z" />
+        </g>
+        <path class="whale-body" d="M6 60C22 40 74 30 144 32c58 2 108 12 142 18l2 16c-38 10-94 22-150 22C78 88 28 80 6 60z" />
+        <path class="whale-belly" d="M14 66c36 14 86 20 130 18 30-2 56-6 78-12-30 12-70 18-110 18-40 0-76-8-98-24z" />
+        <path class="grooves" d="M22 68c40 10 84 14 124 12M30 73c36 8 74 10 110 8M40 78c30 6 62 7 94 5" />
+        <g class="fin">
+          <path class="whale-fin" d="M96 76c6 22 26 42 62 50 4 0 4-4 0-6-26-10-42-26-50-44z" />
+        </g>
+        <g class="bumps">
+          <circle cx="16" cy="56" r="1.6" /><circle cx="24" cy="50" r="1.6" /><circle cx="34" cy="46" r="1.6" /><circle cx="22" cy="60" r="1.4" />
+        </g>
+        <circle class="eye" cx="52" cy="58" r="2.6" />
+      </svg>
+    {:else if id === 'sperm'}
+      <!-- 향유고래: 네모난 머리, 깊이 2,000m 넘게 잠수 -->
+      <svg viewBox="0 0 320 100">
+        <g class="tail">
+          <path class="sperm-body" d="M262 50c8-8 18-18 30-24 6-1 8 3 4 7-8 6-12 12-16 18 6 6 12 12 20 18 3 4-1 7-6 5-12-6-22-12-32-18z" />
+        </g>
+        <path class="sperm-body" d="M6 40C6 22 30 16 76 16c60 0 130 14 188 30l2 10C210 72 140 80 80 78 32 76 6 62 6 40z" />
+        <path class="jaw" d="M22 62c22 6 52 8 84 6" />
+        <path class="wrinkle" d="M120 30c40 6 80 14 120 24M126 70c40-2 80-8 116-16" />
+        <circle class="eye" cx="70" cy="48" r="2.4" />
       </svg>
     {:else if id === 'jelly'}
       <svg viewBox="0 0 60 110">
@@ -207,6 +249,44 @@
       transform-origin: 30% 50%;
     }
   }
+  .tropical {
+    --w: min(46vw, 210px);
+    --dur: 4s;
+    .fish {
+      animation: wiggle 0.45s ease-in-out infinite alternate;
+      transform-box: fill-box;
+      transform-origin: 30% 50%;
+    }
+    .t-y { fill: #ffd84d; }
+    .t-b { fill: #4fb6ff; }
+    .t-o { fill: #ff8a4c; }
+    .stripe {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.85);
+      stroke-width: 1.4;
+    }
+    .t-eye {
+      fill: #1b2333;
+    }
+  }
+  .dolphin {
+    --w: min(48vw, 220px);
+    --dur: 4.6s;
+    .dolphin-body,
+    .dolphin-fin {
+      fill: #5f86a8;
+    }
+    .dolphin-belly {
+      fill: #cfe3ef;
+    }
+    .eye {
+      fill: #142233;
+    }
+    // .body 는 flip(scaleX) 이 쓰므로 안쪽 그림에 출렁임을 준다
+    svg {
+      animation: porpoise 1.6s ease-in-out infinite;
+    }
+  }
   .turtle {
     --w: min(34vw, 150px);
     --dur: 7s;
@@ -248,18 +328,60 @@
     }
   }
   .whale {
-    --w: min(150vw, 640px);
-    --dur: 11s;
+    --w: min(140vw, 600px);
+    --dur: 12s;
     .whale-body {
-      fill: rgba(6, 34, 60, 0.45);
+      fill: rgba(16, 52, 82, 0.78);
+    }
+    .whale-belly {
+      fill: rgba(170, 210, 230, 0.32);
+    }
+    .whale-fin {
+      fill: rgba(28, 72, 104, 0.8);
     }
     .grooves {
       fill: none;
-      stroke: rgba(180, 220, 240, 0.12);
-      stroke-width: 1.5;
+      stroke: rgba(200, 230, 245, 0.22);
+      stroke-width: 1.2;
+    }
+    .bumps circle {
+      fill: rgba(170, 210, 230, 0.35);
     }
     .eye {
-      fill: rgba(0, 0, 0, 0.4);
+      fill: rgba(0, 10, 20, 0.7);
+    }
+    .tail {
+      animation: fluke 3.2s ease-in-out infinite;
+      transform-box: fill-box;
+      transform-origin: 0% 50%;
+    }
+    .fin {
+      animation: fin 3.2s ease-in-out infinite;
+      transform-box: fill-box;
+      transform-origin: 0% 0%;
+    }
+  }
+  .sperm {
+    --w: min(120vw, 520px);
+    --dur: 11s;
+    .sperm-body {
+      fill: rgba(62, 70, 92, 0.9);
+      stroke: rgba(170, 195, 235, 0.45);
+      stroke-width: 1.2;
+    }
+    .jaw,
+    .wrinkle {
+      fill: none;
+      stroke: rgba(170, 195, 235, 0.3);
+      stroke-width: 1.2;
+    }
+    .eye {
+      fill: rgba(200, 220, 255, 0.25);
+    }
+    .tail {
+      animation: fluke 3.6s ease-in-out infinite;
+      transform-box: fill-box;
+      transform-origin: 0% 50%;
     }
   }
 
@@ -454,6 +576,21 @@
     }
     to {
       transform: translate3d(-30%, -120vh, 0);
+    }
+  }
+  @keyframes porpoise {
+    50% {
+      transform: translateY(-14px) rotate(-4deg);
+    }
+  }
+  @keyframes fluke {
+    50% {
+      transform: rotate(-9deg);
+    }
+  }
+  @keyframes fin {
+    50% {
+      transform: rotate(6deg);
     }
   }
   @keyframes wiggle {

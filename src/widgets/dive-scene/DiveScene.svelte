@@ -39,8 +39,8 @@
   let spawnKey = 0;
 
   /** 생물 하나 띄우기: 위치·크기·방향·원근을 무작위로 */
-  function spawn(id: CreatureId) {
-    const far = Math.random() < 0.3;
+  function spawn(id: CreatureId, opts: Partial<Omit<Spawn, 'key' | 'id'>> = {}) {
+    const far = opts.far ?? Math.random() < 0.3;
     creatures = [
       ...creatures,
       {
@@ -50,6 +50,7 @@
         scale: (far ? 0.55 : 0.8) + Math.random() * 0.4,
         flip: Math.random() < 0.4,
         far,
+        ...opts,
       },
     ];
   }
@@ -107,6 +108,17 @@
     let lifeAcc = 0;
     let nextLife = 0.8;
     let lastLife: CreatureId | null = null;
+    const pickLife = (zid: string): CreatureId => {
+      const pool = ZONE_LIFE[zid] ?? ZONE_LIFE.sunlight;
+      let id = pool[Math.floor(Math.random() * pool.length)];
+      if (id === lastLife) id = pool[(pool.indexOf(id) + 1) % pool.length];
+      return (lastLife = id);
+    };
+    // 고래는 꼭 한 번: 입수 직후 혹등고래, 깊은 다이브면 점심해에서 향유고래
+    let sinkStart = -1;
+    let humpback = false;
+    let humpbackFlip = false;
+    let sperm = target < 1500;
     let raf = 0;
 
     const finish = () => {
@@ -140,21 +152,44 @@
           bobAcc = 0;
           particles.bob(w / 2);
         }
+        // 떠 있는 동안 수면 아래로 얕은 바다 생물이 지나간다
+        lifeAcc += dt;
+        if (lifeAcc >= nextLife && creatures.length < 4 && !done) {
+          lifeAcc = 0;
+          nextLife = 0.9 + Math.random() * 0.8;
+          spawn(pickLife('sunlight'), { pos: 0.6 + Math.random() * 0.25, far: Math.random() < 0.25 });
+        }
       }
 
-      // 구간에 머무는 동안 생물이 계속 지나간다
+      if (f.phase === 'sink' && !instant) {
+        if (sinkStart < 0) {
+          sinkStart = t;
+          // 입수하자마자 얕은 바다의 생기: 열대어와 물고기 떼부터
+          spawn('tropical', { pos: 0.66, far: false });
+          spawn('school', { pos: 0.22, far: true });
+        }
+        if (!humpback && t - sinkStart > 0.5) {
+          humpback = true;
+          humpbackFlip = Math.random() < 0.5;
+          spawn('whale', { pos: 0.52, scale: 1, far: false, flip: humpbackFlip });
+          sound.whale();
+        }
+        if (!sperm && f.depth > 1200) {
+          sperm = true;
+          // 혹등고래와 겹치지 않게 위쪽에서 반대 방향으로
+          spawn('sperm', { pos: 0.3, scale: 0.9, far: false, flip: !humpbackFlip });
+        }
+      }
+
+      // 구간에 머무는 동안 생물이 계속 지나간다 (얕을수록 더 북적이게)
       if (f.phase === 'sink' && !instant && f.depth >= 5) {
+        const zid = zoneOf(f.depth).id;
+        const shallow = zid === 'sunlight';
         lifeAcc += dt;
-        if (lifeAcc >= nextLife && creatures.length < 5) {
+        if (lifeAcc >= nextLife && creatures.length < (shallow ? 7 : 5)) {
           lifeAcc = 0;
-          nextLife = 1.2 + Math.random() * 1.3;
-          const pool = ZONE_LIFE[zoneOf(f.depth).id];
-          if (pool) {
-            let id = pool[Math.floor(Math.random() * pool.length)];
-            if (id === lastLife) id = pool[(pool.indexOf(id) + 1) % pool.length];
-            lastLife = id;
-            spawn(id);
-          }
+          nextLife = shallow ? 0.45 + Math.random() * 0.5 : 1.2 + Math.random() * 1.3;
+          spawn(pickLife(zid));
         }
       }
 
@@ -247,6 +282,9 @@
   {#if frame.surfaceY > -0.3}
     <div class="sky" style:transform="translateY({(frame.surfaceY - 1) * 100}dvh)" aria-hidden="true">
       <div class="sun"></div>
+      <svg class="gull g1" viewBox="0 0 40 14"><path d="M2 10C8 2 14 2 20 9c6-7 12-7 18 1" /></svg>
+      <svg class="gull g2" viewBox="0 0 40 14"><path d="M2 10C8 2 14 2 20 9c6-7 12-7 18 1" /></svg>
+      <svg class="gull g3" viewBox="0 0 40 14"><path d="M2 10C8 2 14 2 20 9c6-7 12-7 18 1" /></svg>
     </div>
     <div class="surface" style:top="calc({frame.surfaceY * 100}dvh - 38px)">
       <WaterSurface calm={kind === 'float'} />
@@ -384,6 +422,36 @@
     transform: translateX(-50%);
     border-radius: 50%;
     background: radial-gradient(circle, rgba(255, 246, 232, 0.95), rgba(255, 220, 200, 0.4) 40%, transparent 70%);
+  }
+
+  // 갈매기: 하늘을 천천히 가로지르며 날갯짓
+  .gull {
+    position: absolute;
+    left: 0;
+    width: 30px;
+    fill: none;
+    stroke: rgba(43, 53, 102, 0.55);
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    animation:
+      fly 16s linear infinite,
+      flap-wing 0.9s ease-in-out infinite alternate;
+  }
+  .g1 {
+    bottom: 34%;
+  }
+  .g2 {
+    bottom: 42%;
+    width: 22px;
+    animation-delay: -6s, -0.3s;
+    animation-duration: 20s, 0.8s;
+  }
+  .g3 {
+    bottom: 27%;
+    width: 18px;
+    animation-delay: -11s, -0.5s;
+    animation-duration: 24s, 1s;
+    opacity: 0.7;
   }
 
   .surface {
@@ -619,6 +687,19 @@
     to {
       translate: 4vw 0;
       opacity: 0.6;
+    }
+  }
+  @keyframes fly {
+    from {
+      translate: -40px 0;
+    }
+    to {
+      translate: 110vw -30px;
+    }
+  }
+  @keyframes flap-wing {
+    to {
+      transform: scaleY(0.55);
     }
   }
   @keyframes caustic {

@@ -34,6 +34,8 @@ export class Particles {
   private glowAcc = 0;
   /** 카메라가 내려간 누적 거리(px) — 양옆 암벽 시차 스크롤용 */
   private scroll = 0;
+  private sparkAcc = 0;
+  private time = 0;
 
   constructor(private canvas: HTMLCanvasElement) {
     this.ctx = canvas.getContext('2d')!;
@@ -95,6 +97,7 @@ export class Particles {
     const wy = f.weightY * H;
     const underwater = f.surfaceY < 0.98;
     this.scroll += flow * dt;
+    this.time = time;
 
     // 추에서 올라오는 기포: 깊어질수록 적고 작다
     if (f.phase === 'sink' || f.phase === 'settle' || (f.phase === 'drop' && f.weightY > f.surfaceY)) {
@@ -106,6 +109,20 @@ export class Particles {
         this.ps.push({
           kind: 'bubble', x: weightX + (Math.random() - 0.5) * 18, y: wy - 10,
           vx: 0, vy: -(40 + size * 14), r: size, life: 0, max: 4, a: 0.7, seed: Math.random() * 1000,
+        });
+      }
+    }
+
+    // 표층: 햇빛 반짝임
+    if (underwater && f.depth < 180 && f.phase !== 'done') {
+      this.sparkAcc += dt * 5;
+      while (this.sparkAcc >= 1) {
+        this.sparkAcc -= 1;
+        const top = Math.max(0, surfacePx + 20);
+        this.ps.push({
+          kind: 'glow', x: Math.random() * this.w, y: top + Math.random() * (H - top) * 0.55,
+          vx: 0, vy: 0, r: 0.5 + Math.random() * 0.8, life: 0, max: 0.6 + Math.random() * 0.8, a: 0.9, seed: 0,
+          c: '255,255,240',
         });
       }
     }
@@ -167,6 +184,7 @@ export class Particles {
     const surfacePx = f.surfaceY * this.h;
     const visibleSnow = f.surfaceY < 0.9 ? Math.min(1, 0.4 + f.depthRatio * 3) : 0.35;
     if (f.surfaceY < -0.2) this.drawWalls(f);
+    this.drawKelp(f);
 
     for (const p of this.ps) {
       const fade = p.max === Infinity ? 1 : 1 - p.life / p.max;
@@ -269,6 +287,43 @@ export class Particles {
           ctx.lineWidth = 1;
           ctx.stroke();
         }
+      }
+    }
+  }
+
+  /** 표층 다시마 숲: 양옆에서 흔들리고, 200m 쯤에서 사라진다 */
+  private drawKelp(f: Frame) {
+    const fade = 1 - smooth(70, 260, f.depth);
+    if (fade <= 0.01) return;
+    const { ctx, w, h } = this;
+    const top = Math.max(0, f.surfaceY * h + 30);
+    const strands = [
+      { x: 0.04, hue: '52,150,110', width: 7, seed: 0.3, far: false },
+      { x: 0.11, hue: '74,176,124', width: 5, seed: 1.9, far: true },
+      { x: 0.17, hue: '40,130,100', width: 6, seed: 3.1, far: false },
+      { x: 0.83, hue: '40,130,100', width: 6, seed: 4.4, far: false },
+      { x: 0.9, hue: '74,176,124', width: 5, seed: 5.6, far: true },
+      { x: 0.97, hue: '52,150,110', width: 7, seed: 6.8, far: false },
+    ];
+    for (const k of strands) {
+      const alpha = fade * (k.far ? 0.35 : 0.7);
+      const base = k.x * w;
+      const sway = (y: number) => Math.sin(this.time * 1.1 + y / 70 + k.seed) * (10 + (h - y) * 0.03);
+      ctx.strokeStyle = `rgba(${k.hue},${alpha})`;
+      ctx.lineWidth = k.width;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(base, h + 10);
+      for (let y = h; y >= top; y -= 14) ctx.lineTo(base + sway(y), y);
+      ctx.stroke();
+      // 잎사귀
+      ctx.fillStyle = `rgba(${k.hue},${alpha * 0.9})`;
+      for (let y = h - 30; y >= top + 20; y -= 46) {
+        const x = base + sway(y);
+        const dir = Math.floor(y / 46) % 2 ? 1 : -1;
+        ctx.beginPath();
+        ctx.ellipse(x + dir * 9, y, 11, 4.5, dir * 0.6 + Math.sin(this.time + y) * 0.15, 0, Math.PI * 2);
+        ctx.fill();
       }
     }
   }

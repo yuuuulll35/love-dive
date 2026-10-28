@@ -156,6 +156,33 @@ class Sound {
     o.stop(t + 1.7);
   }
 
+  /** 고래 울음: 낮게 미끄러지는 두 음 */
+  whale() {
+    const ctx = this.ensure();
+    if (!ctx || !this.master) return;
+    const t = ctx.currentTime;
+    for (const [start, f0, f1] of [[0, 210, 150], [1.6, 160, 240]] as const) {
+      const o = ctx.createOscillator();
+      const vib = ctx.createOscillator();
+      const vibGain = ctx.createGain();
+      const g = ctx.createGain();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(f0, t + start);
+      o.frequency.exponentialRampToValueAtTime(f1, t + start + 1.4);
+      vib.frequency.value = 5;
+      vibGain.gain.value = 4;
+      vib.connect(vibGain).connect(o.frequency);
+      g.gain.setValueAtTime(0.0001, t + start);
+      g.gain.exponentialRampToValueAtTime(0.12, t + start + 0.3);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + start + 1.5);
+      o.connect(g).connect(this.master);
+      o.start(t + start);
+      vib.start(t + start);
+      o.stop(t + start + 1.6);
+      vib.stop(t + start + 1.6);
+    }
+  }
+
   /** 착저: 둔탁한 쿵 */
   thud() {
     const ctx = this.ensure();

@@ -412,7 +412,16 @@
       font-size: 13.5px;
       font-weight: 600;
       font-variant-numeric: tabular-nums;
-      white-space: nowrap;
+      word-break: keep-all;
+      overflow-wrap: anywhere;
+    }
+    @media (max-width: 360px) {
+      div {
+        padding: 9px 9px;
+      }
+      dd {
+        font-size: 12.5px;
+      }
     }
     .temp {
       color: var(--accent-temp, var(--ink));

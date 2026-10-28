@@ -62,6 +62,13 @@
     letter-spacing: 0.08em;
     text-transform: uppercase;
 
+    // 작은 폰(≤360px)에서도 ABYSS-XXXX-XXXX-XXXX-XX 한 줄이 다 보이게
+    @media (max-width: 360px) {
+      padding: 0 12px;
+      letter-spacing: 0;
+      font-size: 14px;
+    }
+
     &::placeholder {
       letter-spacing: 0.06em;
     }
