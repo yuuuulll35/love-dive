@@ -32,12 +32,11 @@ jobs:
         with:
           path: dist
 
+  # environment(github-pages) 를 두지 않는다: 그 환경의 배포 허용 브랜치 규칙이
+  # 처음 Pages 를 켤 때의 기본 브랜치로 고정돼 main 배포를 막았기 때문
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
