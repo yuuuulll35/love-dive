@@ -22,7 +22,7 @@
 
   // 바닥에서 피어오르는 물방울 줄기 [x%, y%, 지름px]
   const BUBBLES: Record<Tier, readonly (readonly [number, number, number])[]> = {
-    light: [[58, 78, 11], [61, 64, 8], [57, 52, 6], [60, 41, 5], [58, 31, 4], [88, 70, 7], [86, 58, 5], [89, 47, 4]],
+    light: [[60, 70, 9], [63, 52, 6], [59, 37, 5], [62, 24, 4], [88, 62, 6], [86, 44, 4], [89, 30, 3]],
     soft: [[84, 74, 8], [86, 60, 6], [83, 48, 4], [85, 38, 3]],
     deep: [[84, 66, 5], [82, 54, 3]],
     abyss: [],
@@ -70,28 +70,8 @@
           <span class="glint" style:left="{x}%" style:top="{y}%" aria-hidden="true"></span>
         {/each}
       {/if}
-      <svg class="bed" viewBox="0 0 400 60" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
-        {#if tier === 'light'}
-          <!-- 다시마·산호·불가사리 -->
-          <g class="weed">
-            <path d="M34 50C26 36 40 26 32 12M34 50C40 38 30 30 38 20" />
-            <path d="M330 52C324 40 336 32 328 18M336 52C342 42 334 34 342 26" />
-          </g>
-          <g class="coral">
-            <path d="M376 50V36M376 42L366 32M376 40L386 30M366 32L362 26M386 30L390 25" />
-          </g>
-          <path class="star" d="M92 47l2.4 4.6 5.1.6-3.8 3.4 1 5-4.7-2.5-4.7 2.5 1-5-3.8-3.4 5.1-.6z" />
-        {:else if tier === 'soft'}
-          <g class="weed thin">
-            <path d="M40 52C36 42 44 36 40 26" />
-            <path d="M352 52C348 44 356 38 352 30" />
-          </g>
-        {:else}
-          <!-- 바위 둔덕 -->
-          <path class="rock" d="M20 60C24 46 40 42 54 48S70 60 70 60zM300 60C306 50 322 44 336 50S352 60 352 60z" />
-        {/if}
-        <path class="dune back" d="M0 40C70 28 120 44 200 36S330 24 400 34V60H0z" />
-        <path class="dune" d="M0 50C60 40 130 54 210 46S330 40 400 48V60H0z" />
+      <svg class="bed" viewBox="0 0 400 28" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0 14C60 4 110 18 180 12S300 2 400 13V28H0z" />
       </svg>
     {/if}
     {#if hot && tier !== 'void' && result.kind !== 'float'}<span class="vent" aria-hidden="true"></span>{/if}
@@ -187,7 +167,7 @@
     position: relative;
     overflow: hidden;
     isolation: isolate;
-    padding: 18px 22px 84px;
+    padding: 18px 22px 34px;
     background: linear-gradient(to bottom, var(--top), var(--bottom));
     color: #fff;
   }
@@ -226,7 +206,7 @@
   }
 
   .depth {
-    margin: 18px 0 0;
+    margin: 10px 0 0;
     font-size: clamp(58px, 19vw, 78px);
     font-weight: var(--nw);
     font-variant-numeric: tabular-nums;
@@ -282,54 +262,17 @@
     z-index: -1;
     left: 0;
     right: 0;
-    bottom: 0;
+    bottom: -1px;
     width: 100%;
-    aspect-ratio: 400 / 60;
-    overflow: visible;
-
-    .dune {
-      fill: #f3e6cf;
-    }
-    .dune.back {
-      fill: #e4d3b4;
-      opacity: 0.7;
-    }
-    .weed path {
-      fill: none;
-      stroke: #3f9e7d;
-      stroke-width: 5;
-      stroke-linecap: round;
-    }
-    .weed.thin path {
-      stroke-width: 3;
-      stroke: rgba(170, 220, 230, 0.5);
-    }
-    .coral path {
-      fill: none;
-      stroke: #ff8f8f;
-      stroke-width: 4;
-      stroke-linecap: round;
-    }
-    .star {
-      fill: #ffb25c;
-    }
-    .rock {
-      fill: rgba(255, 255, 255, 0.06);
-    }
+    aspect-ratio: 400 / 28;
+    fill: rgba(255, 255, 255, 0.35);
   }
-  .soft .bed .dune {
-    fill: rgba(255, 255, 255, 0.16);
+  .soft .bed {
+    fill: rgba(255, 255, 255, 0.14);
   }
-  .soft .bed .dune.back {
-    fill: rgba(255, 255, 255, 0.08);
-  }
-  .deep .bed .dune,
-  .abyss .bed .dune {
+  .deep .bed,
+  .abyss .bed {
     fill: var(--bg);
-  }
-  .deep .bed .dune.back,
-  .abyss .bed .dune.back {
-    fill: rgba(255, 255, 255, 0.05);
   }
 
   // 수면에서 비스듬히 꽂히는 빛줄기
@@ -351,7 +294,7 @@
   // ───── 수심 눈금 ─────
   .gauge {
     position: relative;
-    margin-top: 18px;
+    margin-top: 12px;
     max-width: 236px;
     padding-top: 26px;
   }
@@ -453,7 +396,6 @@
 
   // ───── 페어 이미지 측심추 ─────
   .window.with-img {
-    padding-bottom: 96px;
     .gauge {
       max-width: calc(100% - 124px);
     }

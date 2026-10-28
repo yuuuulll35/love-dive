@@ -438,7 +438,7 @@ export class Particles {
     const fade = 1 - smooth(140, 420, depth);
     if (fade <= 0.02) return;
     const { ctx, w, h } = this;
-    const SPACING = 118;
+    const SPACING = 230;
     const offset = this.scroll * speed;
     const first = Math.floor((top + offset) / SPACING) - 1;
     const last = Math.ceil((h + offset) / SPACING) + 1;
@@ -451,17 +451,18 @@ export class Particles {
       const e = Math.max(0, edge(y));
       if (e < 14) continue;
       const x = side ? w - e : e;
-      const kind = (((i * 7 + side * 3) % 5) + 5) % 5;
+      // 같은 종류가 이어지지 않게 돌리고, 말미잘은 드물게
+      const kind = (((i * 3 + side * 2) % 6) + 6) % 6;
       const sway = Math.sin(this.time * 1.6 + i) * 0.12;
       ctx.save();
       ctx.translate(x - dir * 2, y);
       ctx.scale(dir, 1);
       ctx.rotate(sway * (kind === 3 ? 1.6 : 0.6));
       switch (kind) {
-        case 0: this.coral(); break;
+        case 0: this.brain(); break;
         case 1: this.fan(); break;
         case 2: this.anemone(i); break;
-        case 3: this.kelp(); break;
+        case 3: case 5: this.kelp(); break;
         case 4: this.coral('#ffb37a', '#ffd9b0'); break;
       }
       ctx.restore();
@@ -484,6 +485,18 @@ export class Particles {
     ctx.fillStyle = tip;
     for (const [px, py] of [[16, -34], [36, -38], [44, -22], [4, -24]]) {
       ctx.beginPath(); ctx.arc(px, py, 3, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+
+  /** 뇌산호: 둥근 덩어리에 주름 */
+  private brain() {
+    const { ctx } = this;
+    ctx.fillStyle = '#f2a37c';
+    ctx.beginPath(); ctx.ellipse(16, -6, 18, 12, 0, Math.PI, 0); ctx.lineTo(34, 0); ctx.lineTo(-2, 0); ctx.fill();
+    ctx.strokeStyle = 'rgba(160,82,60,0.55)';
+    ctx.lineWidth = 1.4;
+    for (const r of [5, 10, 15]) {
+      ctx.beginPath(); ctx.ellipse(16, -2, r, r * 0.7, 0, Math.PI * 1.05, Math.PI * 1.95); ctx.stroke();
     }
   }
 
