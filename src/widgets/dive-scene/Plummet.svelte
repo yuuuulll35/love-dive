@@ -5,13 +5,18 @@
     thread?: number;
     glow?: boolean;
     size?: number;
+    /** 페어 이미지(배경 없는 PNG). 있으면 하트 대신 이 이미지가 매달린다 */
+    image?: string | null;
   }
-  let { thread = 2000, glow = false, size = 44 }: Props = $props();
+  let { thread = 2000, glow = false, size = 44, image = null }: Props = $props();
   const uid = $props.id();
 </script>
 
-<div class="plummet" class:glow style:--size="{size}px" style:--thread="{thread}px" aria-hidden="true">
+<div class="plummet" class:glow class:has-image={!!image} style:--size="{size}px" style:--thread="{thread}px" aria-hidden="true">
   <span class="thread"></span>
+  {#if image}
+    <img class="charm" src={image} alt="" />
+  {:else}
   <svg viewBox="0 0 44 54" width={size} height={size * (54 / 44)}>
     <defs>
       <linearGradient id="lead-{uid}" x1="0" y1="0" x2="1" y2="1">
@@ -36,6 +41,7 @@
       fill="url(#shine-{uid})"
     />
       </svg>
+  {/if}
 </div>
 
 <style lang="scss">
@@ -61,6 +67,23 @@
     transform: translateX(-50%);
     background: linear-gradient(to top, var(--thread), rgba(255, 77, 109, 0.85) 60%, rgba(255, 77, 109, 0.35));
     box-shadow: 0 0 6px rgba(255, 77, 109, 0.5);
+  }
+
+  .has-image {
+    width: auto;
+
+    .thread {
+      bottom: 100%;
+    }
+  }
+  .charm {
+    display: block;
+    max-width: calc(var(--size) * 2);
+    max-height: calc(var(--size) * 2);
+    object-fit: contain;
+  }
+  .glow .charm {
+    filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.7)) drop-shadow(0 0 12px rgba(255, 77, 109, 0.45));
   }
 
   .glow svg {

@@ -1,4 +1,4 @@
-import { toBlob } from 'html-to-image';
+import { toCanvas } from 'html-to-image';
 
 /**
  * 한글 웹폰트는 unicode-range 로 수십~수백 조각에 나뉘어 있어서 html-to-image 기본 동작으로는
@@ -76,7 +76,8 @@ async function toDataUrl(url: string): Promise<string> {
  * html-to-image 는 font-size 를 내림(15.5px → 14.9px)하면서 높이는 원본 px 그대로 복사한다.
  * 그러면 줄바꿈이 달라져 빈 줄이 생기므로, 높이 계열 속성은 빼고 복제본이 스스로 흐르게 한다.
  */
-const SKIP_PROPS = new Set(['height', 'block-size', 'min-height', 'min-block-size']);
+// grid 컨테이너는 계산된 행 높이(px)까지 복사되므로 함께 뺀다
+const SKIP_PROPS = new Set(['height', 'block-size', 'min-height', 'min-block-size', 'grid-template-rows']);
 function styleProperties(): string[] {
   return Array.from(getComputedStyle(document.documentElement)).filter((p) => !SKIP_PROPS.has(p));
 }
@@ -84,15 +85,40 @@ function styleProperties(): string[] {
 export async function renderCardBlob(node: HTMLElement): Promise<Blob> {
   await document.fonts?.ready;
   const fontEmbedCSS = await buildFontEmbedCSS(node);
-  const blob = await toBlob(node, {
+  const canvas = await toCanvas(node, {
     includeStyleProperties: styleProperties(),
     pixelRatio: Math.min(3, Math.max(2, devicePixelRatio || 2)),
     fontEmbedCSS,
     cacheBust: false,
+    // 그림자는 카드 밖 여백으로 찍히므로 저장본에서는 뺀다
+    style: { boxShadow: 'none', margin: '0' },
     filter: (el) => !(el instanceof HTMLElement && el.dataset.noCapture !== undefined),
   });
+  const trimmed = trimBottom(canvas);
+  const blob = await new Promise<Blob | null>((resolve) => trimmed.toBlob(resolve, 'image/png'));
   if (!blob) throw new Error('render failed');
   return blob;
+}
+
+/** 복제본은 글자 크기 내림 때문에 원본보다 살짝 짧게 그려진다 → 아래쪽 빈 줄을 잘라 낸다 */
+function trimBottom(src: HTMLCanvasElement): HTMLCanvasElement {
+  const ctx = src.getContext('2d');
+  if (!ctx) return src;
+  const { width, height } = src;
+  const data = ctx.getImageData(0, 0, width, height).data;
+  let bottom = height;
+  outer: for (let y = height - 1; y >= 0; y--) {
+    for (let x = 0; x < width; x += 2) {
+      if (data[(y * width + x) * 4 + 3] > 0) break outer;
+    }
+    bottom = y;
+  }
+  if (bottom >= height || bottom === 0) return src;
+  const out = document.createElement('canvas');
+  out.width = width;
+  out.height = bottom;
+  out.getContext('2d')!.drawImage(src, 0, 0);
+  return out;
 }
 
 /** 모바일은 공유 시트(사진 앱에 저장 가능), 데스크톱은 다운로드 */

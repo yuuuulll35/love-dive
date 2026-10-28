@@ -5,6 +5,7 @@
   import ShareActions from '$features/share-result/ShareActions.svelte';
   import DiveScene from '$widgets/dive-scene/DiveScene.svelte';
   import ResultCard from '$widgets/result-card/ResultCard.svelte';
+  import ResultAnalysis from '$widgets/result-card/ResultAnalysis.svelte';
   import Button from '$shared/ui/Button.svelte';
   import { sound } from '$shared/lib/sound.svelte';
   import { pairImage } from '$features/pair-image/store.svelte';
@@ -41,7 +42,7 @@
 {#if outcome?.ok}
   {@const r = outcome.result}
   {#key replayKey}
-    <DiveScene bind:this={scene} result={r} {instant} ondone={() => (showResult = true)} />
+    <DiveScene bind:this={scene} result={r} image={pairImage.for(token)} {instant} ondone={() => (showResult = true)} />
   {/key}
 
   <div class="controls" class:hidden={showResult}>
@@ -62,6 +63,7 @@
     <main class="result" aria-live="polite">
       <div class="stack">
         <ResultCard result={r} image={pairImage.for(token)} bind:node={card} />
+        <ResultAnalysis result={r} />
         <ShareActions
           {card}
           filename="love-dive-{r.kind === 'void' ? 'abyss' : Math.round(r.depth) + 'm'}.png"

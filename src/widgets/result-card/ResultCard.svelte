@@ -1,7 +1,7 @@
 <script lang="ts">
   import { waterColor, type MeasureResult } from '$entities/abyss';
   import { formatAtm, formatDepth } from '$shared/lib/format';
-  import { lerp } from '$shared/lib/math';
+  import { depthMood, type Tier } from './mood';
 
   interface Props {
     result: MeasureResult;
@@ -12,19 +12,8 @@
   }
   let { result, image = null, node = $bindable() }: Props = $props();
 
-  /**
-   * 깊이 → 분위기. 얕을수록 밝고 둥글고 굵게(가볍고 귀엽게),
-   * 깊을수록 어둡고 각지고 가늘게(무겁고 진중하게).
-   */
-  type Tier = 'light' | 'soft' | 'deep' | 'abyss' | 'void';
-  const TIER: Record<string, Tier> = {
-    float: 'light', sunlight: 'light', twilight: 'soft', midnight: 'deep', abyss: 'abyss', hadal: 'abyss', void: 'void',
-  };
-  const tier = $derived(TIER[result.zone.id]);
-  // 로그 스케일 수심 진행도 0~1
-  const r = $derived(Math.min(1, Math.log1p(result.depth) / Math.log1p(10935)));
-  const numWeight = $derived(Math.round(lerp(860, 200, r ** 1.4)));
-  const radius = $derived(Math.round(lerp(32, 10, r)));
+  const mood = $derived(depthMood(result));
+  const tier = $derived(mood.tier);
 
   const rgb = (c: number[]) => `rgb(${c.join(',')})`;
   const waterTop = $derived(rgb(waterColor(result.depth * 0.3)));
@@ -47,15 +36,16 @@
 <article
   class="card {tier}"
   class:hot
-  style:--nw={numWeight}
-  style:--rad="{radius}px"
+  data-tier={tier}
+  style:--nw={mood.numWeight}
+  style:--rad="{mood.radius}px"
   style:--top={waterTop}
   style:--bottom={waterBottom}
   bind:this={node}
   aria-label="측정 결과"
 >
   <!-- ───── 물속 창 ───── -->
-  <div class="window">
+  <div class="window" class:with-img={!!image}>
     {#if result.kind === 'float'}
       <svg class="wave" viewBox="0 0 400 24" preserveAspectRatio="none" aria-hidden="true">
         <path d="M0 10 Q25 2 50 10 T100 10 T150 10 T200 10 T250 10 T300 10 T350 10 T400 10 V24 H0Z" />
@@ -75,6 +65,14 @@
     {/if}
     {#if hot && tier !== 'void' && result.kind !== 'float'}<span class="vent" aria-hidden="true"></span>{/if}
 
+    <!-- 페어 이미지(배경 없는 PNG)가 측심추 자리에 붉은 실로 매달린다 -->
+    {#if image && tier !== 'void'}
+      <div class="hanger" class:floating={result.kind === 'float'} aria-hidden="true">
+        <span class="thread"></span>
+        <img class="charm" src={image} alt="" />
+      </div>
+    {/if}
+
     <p class="logo">LOVE DIVE</p>
 
     {#if result.kind === 'void'}
@@ -86,11 +84,8 @@
 
   <!-- ───── 본문 ───── -->
   <div class="body">
-    {#if image || result.pair}
-      <div class="pair">
-        {#if image}<img src={image} alt={result.pair ? `${result.pair} 이미지` : '페어 이미지'} />{/if}
-        {#if result.pair}<span>{result.pair}</span>{/if}
-      </div>
+    {#if result.pair}
+      <p class="pair">{result.pair}</p>
     {/if}
 
     <div class="head">
@@ -128,19 +123,8 @@
 </article>
 
 <style lang="scss">
-  // ───── 깊이별 테마 ─────
+  // 깊이별 색·굵기 토큰은 src/app/styles/_tiers.scss ([data-tier])
   .card {
-    --bg: #fffaf6;
-    --ink: #1f2a44;
-    --ink-2: #4f5a73;
-    --ink-3: #8e97aa;
-    --rule: #efe6dc;
-    --chip: #ffe8ee;
-    --accent: #ff5c7a;
-    --title-w: 800;
-    --title-ls: -0.02em;
-    --stat-bg: #fff;
-
     width: 100%;
     max-width: 380px;
     margin: 0 auto;
@@ -155,60 +139,6 @@
   // 표층·부유: 밝고 동글동글
   .light .window {
     background: linear-gradient(to bottom, #c9f3f4, var(--bottom));
-  }
-
-  // 박광층: 맑은 푸른빛, 장식은 줄이고
-  .soft {
-    --bg: #f4f8fc;
-    --rule: #dfe8f1;
-    --chip: #e3eefa;
-    --accent: #2f78c9;
-    --stat-bg: #fff;
-    --title-w: 700;
-  }
-
-  // 점심해: 어두운 남색, 차분하게
-  .deep {
-    --bg: #0c1530;
-    --ink: #e9eef9;
-    --ink-2: #aab6cf;
-    --ink-3: #6e7a96;
-    --rule: rgba(233, 238, 249, 0.12);
-    --chip: rgba(143, 180, 255, 0.12);
-    --accent: #8fb4ff;
-    --title-w: 600;
-    --title-ls: -0.01em;
-    --stat-bg: rgba(255, 255, 255, 0.04);
-  }
-
-  // 심해저·초심해: 거의 검정, 가늘고 넓게, 장식 최소
-  .abyss {
-    --bg: #07080d;
-    --ink: #e7e8ee;
-    --ink-2: #a3a7b6;
-    --ink-3: #5f6475;
-    --rule: rgba(231, 232, 238, 0.1);
-    --chip: transparent;
-    --accent: #c8cfdf;
-    --title-w: 500;
-    --title-ls: 0.04em;
-    --stat-bg: transparent;
-  }
-
-  .void {
-    --bg: #050407;
-    --ink: #f1eef0;
-    --ink-2: #b4a9ae;
-    --ink-3: #6f646a;
-    --rule: rgba(255, 77, 109, 0.18);
-    --chip: rgba(255, 77, 109, 0.12);
-    --accent: #ff4d6d;
-    --title-w: 600;
-    --stat-bg: transparent;
-  }
-
-  .hot {
-    --accent-temp: #ff6a4d;
   }
 
   // ───── 물속 창 ─────
@@ -355,25 +285,48 @@
   }
 
   .pair {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink-2);
+  }
 
-    img {
-      flex: none;
-      width: 48px;
-      aspect-ratio: 1;
-      border-radius: calc(var(--rad) * 0.5);
-      object-fit: cover;
-      border: 2px solid var(--bg);
-      box-shadow: 0 0 0 1.5px var(--rule);
+  // ───── 페어 이미지 측심추 ─────
+  .window.with-img {
+    padding-bottom: 128px;
+  }
+  .hanger {
+    position: absolute;
+    z-index: -1;
+    top: 0;
+    right: 22px;
+    bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 104px;
+
+    &.floating {
+      bottom: 26px;
     }
-    span {
-      min-width: 0;
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--ink-2);
-    }
+  }
+  .thread {
+    flex: 1;
+    width: 2px;
+    background: #ff4d6d;
+    box-shadow: 0 0 6px rgba(255, 77, 109, 0.55);
+  }
+  .charm {
+    display: block;
+    max-width: 104px;
+    max-height: 104px;
+    object-fit: contain;
+    filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.3));
+  }
+  // 어두운 바다에서는 윤곽이 묻히지 않게 은은한 빛
+  .deep .charm,
+  .abyss .charm {
+    filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.6)) drop-shadow(0 0 14px rgba(255, 255, 255, 0.18));
   }
 
   .head {

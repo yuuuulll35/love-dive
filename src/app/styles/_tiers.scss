@@ -1,0 +1,73 @@
+// 결과 화면의 깊이별 분위기 토큰. 얕을수록 밝고 귀엽게, 깊을수록 어둡고 진중하게.
+// 결과 카드와 결과 분석이 같은 토큰을 쓴다. (widgets/result-card/mood.ts 의 tier 와 짝)
+[data-tier] {
+  --bg: #fffaf6;
+  --ink: #1f2a44;
+  --ink-2: #4f5a73;
+  --ink-3: #8e97aa;
+  --rule: #efe6dc;
+  --chip: #ffe8ee;
+  --accent: #ff5c7a;
+  --title-w: 800;
+  --title-ls: -0.02em;
+  --stat-bg: #fff;
+  --buoy: #1597a6;
+}
+
+// 박광층: 맑은 푸른빛, 장식은 줄이고
+[data-tier='soft'] {
+  --bg: #f4f8fc;
+  --rule: #dfe8f1;
+  --chip: #e3eefa;
+  --accent: #2f78c9;
+  --stat-bg: #fff;
+  --title-w: 700;
+}
+
+// 점심해: 어두운 남색, 차분하게
+[data-tier='deep'] {
+  --buoy: #7ff6e4;
+  --bg: #0c1530;
+  --ink: #e9eef9;
+  --ink-2: #aab6cf;
+  --ink-3: #6e7a96;
+  --rule: rgba(233, 238, 249, 0.12);
+  --chip: rgba(143, 180, 255, 0.12);
+  --accent: #8fb4ff;
+  --title-w: 600;
+  --title-ls: -0.01em;
+  --stat-bg: rgba(255, 255, 255, 0.04);
+}
+
+// 심해저·초심해: 거의 검정, 가늘고 넓게, 장식 최소
+[data-tier='abyss'] {
+  --buoy: #7ff6e4;
+  --bg: #07080d;
+  --ink: #e7e8ee;
+  --ink-2: #a3a7b6;
+  --ink-3: #5f6475;
+  --rule: rgba(231, 232, 238, 0.1);
+  --chip: transparent;
+  --accent: #c8cfdf;
+  --title-w: 500;
+  --title-ls: 0.04em;
+  --stat-bg: transparent;
+}
+
+[data-tier='void'] {
+  --buoy: #7ff6e4;
+  --bg: #050407;
+  --ink: #f1eef0;
+  --ink-2: #b4a9ae;
+  --ink-3: #6f646a;
+  --rule: rgba(255, 77, 109, 0.18);
+  --chip: rgba(255, 77, 109, 0.12);
+  --accent: #ff4d6d;
+  --title-w: 600;
+  --stat-bg: transparent;
+}
+
+[data-tier].hot {
+  --accent-temp: #ff6a4d;
+}
+

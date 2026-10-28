@@ -13,7 +13,7 @@
     try {
       pairImage.set(await loadImageFile(file), file.name);
     } catch (e) {
-      error = (e as Error).message === 'size' ? '15MB 이하 이미지만 넣을 수 있어요.' : 'PNG·JPG·WEBP 이미지 파일을 골라 주세요.';
+      error = (e as Error).message === 'size' ? '15MB 이하 이미지만 넣을 수 있어요.' : '배경 없는 PNG 파일만 넣을 수 있어요.';
     } finally {
       busy = false;
       input.value = '';
@@ -29,7 +29,7 @@
       <img src={pairImage.url} alt="선택한 페어 이미지" />
       <div class="info">
         <span class="name">{pairImage.name}</span>
-        <span class="hint">결과 카드에 함께 들어가요</span>
+        <span class="hint">하트 추 대신 이 이미지가 가라앉아요</span>
       </div>
       <button type="button" class="swap" onclick={() => input.click()}>바꾸기</button>
       <button type="button" class="remove" onclick={() => pairImage.clear()} aria-label="이미지 빼기">
@@ -56,7 +56,7 @@
     >
       <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="3.5" width="15" height="13" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.4" /><circle cx="7.5" cy="8" r="1.6" fill="currentColor" /><path d="M3 15l4.5-4.5 3 3 2.5-2.5L17 15" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" /></svg>
       <span>{busy ? '불러오는 중…' : '이미지 고르기'}</span>
-      <small>PNG · JPG · WEBP</small>
+      <small>배경 없는 PNG</small>
     </button>
   {/if}
 
@@ -64,7 +64,7 @@
     bind:this={input}
     id="pair-image"
     type="file"
-    accept="image/png,image/jpeg,image/webp,image/gif"
+    accept="image/png"
     hidden
     onchange={(e) => take(e.currentTarget.files?.[0])}
   />
@@ -126,8 +126,8 @@
       width: 48px;
       height: 48px;
       border-radius: 10px;
-      object-fit: cover;
-      background: rgba(255, 255, 255, 0.06);
+      object-fit: contain;
+      background: repeating-conic-gradient(rgba(255, 255, 255, 0.08) 0 25%, transparent 0 50%) 0 0 / 12px 12px;
     }
   }
 

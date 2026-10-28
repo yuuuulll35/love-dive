@@ -13,11 +13,13 @@
 
   interface Props {
     result: MeasureResult;
+    /** 페어 이미지 — 측심추 대신 가라앉는다 */
+    image?: string | null;
     /** true 면 연출 없이 최종 프레임 (reduced-motion · 결과 재표시) */
     instant?: boolean;
     ondone?: () => void;
   }
-  let { result, instant = false, ondone }: Props = $props();
+  let { result, image = null, instant = false, ondone }: Props = $props();
 
   const hot = $derived(result.temperature.id === 'hot');
   const kind = $derived(result.kind);
@@ -241,7 +243,7 @@
     style:top="{frame.weightY * 100}dvh"
     style:transform="translate(-50%, -50%) rotate({Math.sin(time * 1.4) * (frame.phase === 'bob' ? 7 : 3)}deg)"
   >
-    <Plummet glow={frame.depth > 1000} />
+    <Plummet glow={frame.depth > 1000} {image} />
   </div>
 
   <!-- HUD -->

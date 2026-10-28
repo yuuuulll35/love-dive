@@ -6,3 +6,4 @@ export { ZONES, VOID_ZONE, zoneOf, zoneById, waterColor, type Zone, type ZoneId,
 export { ARCHETYPES, matchArchetype } from './archetype';
 export { temperatureOf, type Temperature, type TempId } from './temperature';
 export { measure, type MeasureResult, type MeasureKind } from './measure';
+export { explain, AXIS_INFO, anchorFor, type Explanation, type PullItem } from './explain';
