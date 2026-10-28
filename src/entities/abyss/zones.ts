@@ -12,7 +12,21 @@ export interface Zone {
   defaultTitle: string;
 }
 
-export type CreatureId = 'school' | 'jelly' | 'angler' | 'squid' | 'snailfish';
+export type CreatureId =
+  | 'school' | 'turtle' | 'ray' | 'whale'
+  | 'jelly' | 'lantern' | 'siphon'
+  | 'angler' | 'vampire'
+  | 'squid' | 'dumbo'
+  | 'snailfish' | 'amphipod';
+
+/** 연출 중 구간마다 계속 지나가는 생물 풀 (첫 번째가 구간 대표) */
+export const ZONE_LIFE: Record<string, readonly CreatureId[]> = {
+  sunlight: ['school', 'turtle', 'ray', 'whale', 'school'],
+  twilight: ['jelly', 'lantern', 'siphon', 'whale', 'jelly'],
+  midnight: ['angler', 'siphon', 'vampire', 'lantern'],
+  abyss: ['squid', 'dumbo', 'vampire', 'siphon'],
+  hadal: ['snailfish', 'amphipod', 'dumbo', 'amphipod'],
+};
 
 export const ZONES: readonly Zone[] = [
   { id: 'float', name: '부유', latin: 'SURFACE', from: 0, to: 5, creature: null, defaultTitle: '부표' },

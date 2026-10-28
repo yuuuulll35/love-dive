@@ -6,18 +6,18 @@ import { easeDive, easeDiveVelocity, easeInCubic, easeInOutSine, easeOutCubic } 
  * 연출 타임라인 (순수 함수). 화면 좌표는 뷰포트 높이 비율(0=위, 1=아래).
  *
  * drop   0 ~ 1.2s   측심추 낙하 → 입수(0.7s) → 카메라가 수면 아래로
- * sink   가변        수심 카운터 easeDive, 최소 2s ~ 최대 8s
+ * sink   가변        수심 카운터 easeDive, 최소 3s ~ 최대 12s (천천히 가라앉는 맛)
  * settle 1.1s        착저 · 모래 먼지
  * (float) bob 2.6s  수면에서 흔들림
  * (void)  glitch 1.8s → blackout 2.2s
  */
 export const T_IMPACT = 0.7;
 export const T_DROP = 1.2;
-export const T_SETTLE = 1.1;
+export const T_SETTLE = 1.4;
 export const T_BOB = 2.6;
 export const T_GLITCH = 1.8;
 export const T_BLACKOUT = 2.2;
-export const VOID_SINK = 6.2;
+export const VOID_SINK = 8.5;
 
 export const MAX_DEPTH = 10935;
 export const WEIGHT_REST_Y = 0.4;
@@ -49,7 +49,7 @@ export interface Frame {
 
 export function sinkDuration(depth: number, kind: MeasureKind): number {
   if (kind === 'void') return VOID_SINK;
-  return clamp(2 + 6 * Math.sqrt(depth / MAX_DEPTH), 2, 8);
+  return clamp(3 + 9 * Math.sqrt(depth / MAX_DEPTH), 3, 12);
 }
 
 export function totalDuration(depth: number, kind: MeasureKind): number {

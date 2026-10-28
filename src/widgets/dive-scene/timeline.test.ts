@@ -1,9 +1,9 @@
 import { finalFrame, frameAt, sinkDuration, totalDuration, T_DROP } from './timeline';
 
 describe('timeline', () => {
-  it('연출 길이: 최소 2s, 최대 8s, 수심에 비례', () => {
-    expect(sinkDuration(5, 'normal')).toBeGreaterThanOrEqual(2);
-    expect(sinkDuration(10935, 'normal')).toBeCloseTo(8);
+  it('연출 길이: 최소 3s, 최대 12s, 수심에 비례', () => {
+    expect(sinkDuration(5, 'normal')).toBeGreaterThanOrEqual(3);
+    expect(sinkDuration(10935, 'normal')).toBeCloseTo(12);
     expect(sinkDuration(300, 'normal')).toBeLessThan(sinkDuration(4000, 'normal'));
   });
 

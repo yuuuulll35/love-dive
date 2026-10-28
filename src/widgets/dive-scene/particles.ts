@@ -4,7 +4,17 @@ interface P {
   x: number; y: number; vx: number; vy: number;
   r: number; life: number; max: number; kind: 'snow' | 'bubble' | 'drop' | 'dust' | 'glow';
   a: number; seed: number;
+  /** 발광 색 (r,g,b) */
+  c?: string;
 }
+
+/** 생물 발광 색: 청록이 가장 흔하고, 깊을수록 파랑·보라·분홍이 섞인다 */
+const GLOW_COLORS = ['127,246,228', '127,246,228', '143,190,255', '196,160,255', '255,160,206'];
+
+const smooth = (a: number, b: number, x: number) => {
+  const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
+  return t * t * (3 - 2 * t);
+};
 
 interface Ripple {
   x: number; age: number; max: number; w: number;
@@ -22,6 +32,8 @@ export class Particles {
   private ripples: Ripple[] = [];
   private bubbleAcc = 0;
   private glowAcc = 0;
+  /** 카메라가 내려간 누적 거리(px) — 양옆 암벽 시차 스크롤용 */
+  private scroll = 0;
 
   constructor(private canvas: HTMLCanvasElement) {
     this.ctx = canvas.getContext('2d')!;
@@ -82,6 +94,7 @@ export class Particles {
     const surfacePx = f.surfaceY * H;
     const wy = f.weightY * H;
     const underwater = f.surfaceY < 0.98;
+    this.scroll += flow * dt;
 
     // 추에서 올라오는 기포: 깊어질수록 적고 작다
     if (f.phase === 'sink' || f.phase === 'settle' || (f.phase === 'drop' && f.weightY > f.surfaceY)) {
@@ -102,9 +115,11 @@ export class Particles {
       this.glowAcc += dt * 2.2;
       while (this.glowAcc >= 1) {
         this.glowAcc -= 1;
+        const deepMix = Math.min(GLOW_COLORS.length, 2 + Math.floor((f.depth / 6000) * GLOW_COLORS.length));
         this.ps.push({
           kind: 'glow', x: Math.random() * this.w, y: Math.random() * H,
-          vx: 0, vy: 0, r: 1 + Math.random() * 1.8, life: 0, max: 1.2 + Math.random() * 1.4, a: 0.9, seed: 0,
+          vx: (Math.random() - 0.5) * 10, vy: 0, r: 1 + Math.random() * 1.8, life: 0, max: 1.2 + Math.random() * 1.6, a: 0.9, seed: 0,
+          c: GLOW_COLORS[Math.floor(Math.random() * deepMix)],
         });
       }
     }
@@ -137,6 +152,7 @@ export class Particles {
           break;
         case 'glow':
           p.y -= flow * 0.4 * dt;
+          p.x += p.vx * dt;
           break;
       }
     }
@@ -150,6 +166,7 @@ export class Particles {
     ctx.clearRect(0, 0, this.w, this.h);
     const surfacePx = f.surfaceY * this.h;
     const visibleSnow = f.surfaceY < 0.9 ? Math.min(1, 0.4 + f.depthRatio * 3) : 0.35;
+    if (f.surfaceY < -0.2) this.drawWalls(f);
 
     for (const p of this.ps) {
       const fade = p.max === Infinity ? 1 : 1 - p.life / p.max;
@@ -191,8 +208,9 @@ export class Particles {
         case 'glow': {
           const tw = Math.sin((p.life / p.max) * Math.PI);
           const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 6);
-          g.addColorStop(0, `rgba(127,246,228,${0.85 * tw})`);
-          g.addColorStop(1, 'rgba(127,246,228,0)');
+          const c = p.c ?? GLOW_COLORS[0];
+          g.addColorStop(0, `rgba(${c},${0.85 * tw})`);
+          g.addColorStop(1, `rgba(${c},0)`);
           ctx.fillStyle = g;
           ctx.beginPath();
           ctx.arc(p.x, p.y, p.r * 6, 0, Math.PI * 2);
@@ -212,6 +230,46 @@ export class Particles {
       ctx.beginPath();
       ctx.ellipse(r.x, surfacePx + 4, rx, rx * 0.12, 0, 0, Math.PI * 2);
       ctx.stroke();
+    }
+  }
+
+  /**
+   * 양옆 암벽: 1,000m 부터 조금씩 다가오고, 초심해에서는 좁은 해구가 된다.
+   * 먼 층은 느리게, 가까운 층은 빠르게 흘러 깊이감이 생긴다.
+   */
+  private drawWalls(f: Frame) {
+    const { ctx, w, h } = this;
+    const reach = smooth(900, 6000, f.depth) * 0.16 + smooth(6000, 9500, f.depth) * 0.12;
+    if (reach <= 0.002) return;
+
+    const layers = [
+      { speed: 0.45, width: reach * 1.25, fill: 'rgba(120,150,200,0.07)', rim: null, seed: 1.7 },
+      { speed: 1, width: reach, fill: 'rgba(2,4,10,0.72)', rim: 'rgba(127,246,228,0.10)', seed: 4.2 },
+    ];
+    for (const L of layers) {
+      for (const side of [0, 1]) {
+        const seed = L.seed + side * 9.1;
+        const edge = (y: number) => {
+          const yw = (y + this.scroll * L.speed) / 1;
+          return w * (L.width + 0.035 * Math.sin(yw / 95 + seed) + 0.022 * Math.sin(yw / 41 + seed * 2.3) + 0.01 * Math.sin(yw / 13 + seed * 3.1));
+        };
+        ctx.beginPath();
+        const x0 = side ? w : 0;
+        ctx.moveTo(x0, -10);
+        for (let y = -10; y <= h + 10; y += 10) {
+          const e = Math.max(0, edge(y));
+          ctx.lineTo(side ? w - e : e, y);
+        }
+        ctx.lineTo(x0, h + 10);
+        ctx.closePath();
+        ctx.fillStyle = L.fill;
+        ctx.fill();
+        if (L.rim) {
+          ctx.strokeStyle = L.rim;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+      }
     }
   }
 }

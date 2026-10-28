@@ -1,12 +1,13 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { ZONES, waterColor, zoneOf, type CreatureId, type MeasureResult, type ZoneId } from '$entities/abyss';
+  import { ZONES, ZONE_LIFE, waterColor, zoneOf, type CreatureId, type MeasureResult, type ZoneId } from '$entities/abyss';
   import { formatAtm, formatDepth } from '$shared/lib/format';
   import { sound } from '$shared/lib/sound.svelte';
   import { VOID_HEADLINE, FLOAT_HEADLINE } from '$shared/config/copy';
   import Plummet from './Plummet.svelte';
   import WaterSurface from './WaterSurface.svelte';
   import Creature from './Creature.svelte';
+  import SeabedLife from './SeabedLife.svelte';
   import DepthGauge from './DepthGauge.svelte';
   import { Particles } from './particles';
   import { T_IMPACT, finalFrame, frameAt, totalDuration, type Frame } from './timeline';
@@ -32,10 +33,26 @@
   let host: HTMLDivElement;
 
   // 구간 통과 이벤트
-  type Spawn = { key: number; id: CreatureId };
+  type Spawn = { key: number; id: CreatureId; pos: number; scale: number; flip: boolean; far: boolean };
   let creatures = $state<Spawn[]>([]);
   let passage = $state<{ key: number; text: string } | null>(null);
   let spawnKey = 0;
+
+  /** 생물 하나 띄우기: 위치·크기·방향·원근을 무작위로 */
+  function spawn(id: CreatureId) {
+    const far = Math.random() < 0.3;
+    creatures = [
+      ...creatures,
+      {
+        key: ++spawnKey,
+        id,
+        pos: 0.12 + Math.random() * 0.62,
+        scale: (far ? 0.55 : 0.8) + Math.random() * 0.4,
+        flip: Math.random() < 0.4,
+        far,
+      },
+    ];
+  }
 
   const zoneIndex = (d: number) => (d < 5 ? 0 : ZONES.indexOf(zoneOf(d)));
 
@@ -50,7 +67,10 @@
       bottom: rgb(waterColor(d + span)),
     };
   });
-  const seabedColor = $derived(waterColor(target).map((v) => Math.min(255, Math.round(v * 1.5 + 14))));
+  // 얕은 바다는 모래빛, 깊어질수록 물빛에 섞인 어두운 바닥
+  const seabedColor = $derived(
+    target < 200 ? [232, 214, 176] : waterColor(target).map((v) => Math.min(255, Math.round(v * 1.5 + 14))),
+  );
   const raysOpacity = $derived(Math.max(0, 1 - frame.depth / 260) * (frame.surfaceY < 0.9 ? 1 : 0));
   const zoneLabel = $derived.by(() => {
     if (frame.phase === 'glitch' || frame.phase === 'blackout') return { name: '측정 불가', latin: 'NO SIGNAL' };
@@ -84,6 +104,9 @@
     let lastZone = zoneIndex(0);
     let fired = { impact: instant, settle: instant, glitch: instant, done: false };
     let bobAcc = 0;
+    let lifeAcc = 0;
+    let nextLife = 0.8;
+    let lastLife: CreatureId | null = null;
     let raf = 0;
 
     const finish = () => {
@@ -116,6 +139,22 @@
         if (bobAcc > 1.2) {
           bobAcc = 0;
           particles.bob(w / 2);
+        }
+      }
+
+      // 구간에 머무는 동안 생물이 계속 지나간다
+      if (f.phase === 'sink' && !instant && f.depth >= 5) {
+        lifeAcc += dt;
+        if (lifeAcc >= nextLife && creatures.length < 5) {
+          lifeAcc = 0;
+          nextLife = 1.2 + Math.random() * 1.3;
+          const pool = ZONE_LIFE[zoneOf(f.depth).id];
+          if (pool) {
+            let id = pool[Math.floor(Math.random() * pool.length)];
+            if (id === lastLife) id = pool[(pool.indexOf(id) + 1) % pool.length];
+            lastLife = id;
+            spawn(id);
+          }
         }
       }
 
@@ -156,7 +195,7 @@
 
     function enterZone(id: ZoneId, latest: boolean) {
       const z = ZONES.find((x) => x.id === id)!;
-      if (z.creature) creatures = [...creatures, { key: ++spawnKey, id: z.creature }];
+      if (z.creature && latest) spawn(z.creature);
       const text = result.passages[id];
       if (latest && text) passage = { key: ++spawnKey, text };
       if (latest) sound.ping(1 - ZONES.indexOf(z) * 0.08);
@@ -198,6 +237,8 @@
 >
   <div class="water"></div>
 
+  <div class="caustics" style:opacity={raysOpacity * 0.9} aria-hidden="true"></div>
+
   <div class="rays" style:opacity={raysOpacity} aria-hidden="true">
     <span></span><span></span><span></span><span></span>
   </div>
@@ -216,7 +257,14 @@
 
   <div class="creatures">
     {#each creatures as c (c.key)}
-      <Creature id={c.id} onend={() => (creatures = creatures.filter((x) => x.key !== c.key))} />
+      <Creature
+        id={c.id}
+        pos={c.pos}
+        scale={c.scale}
+        flip={c.flip}
+        far={c.far}
+        onend={() => (creatures = creatures.filter((x) => x.key !== c.key))}
+      />
     {/each}
   </div>
 
@@ -227,12 +275,7 @@
         <path class="far" d="M0 26C50 12 90 30 150 20S260 4 320 18 380 24 400 16V120H0z" />
         <path class="near" d="M0 34C40 26 80 40 140 32S250 22 300 30 370 40 400 30V120H0z" />
       </svg>
-      {#if hot}
-        <div class="vent">
-          <svg viewBox="0 0 40 80"><path d="M10 80L14 40 11 30 16 18 15 6h10l-1 12 5 12-3 10 4 40z" /></svg>
-          <span class="plume"></span>
-        </div>
-      {/if}
+      {#if kind === 'normal'}<SeabedLife zone={result.zone.id} />{/if}
     </div>
   {/if}
 
@@ -387,27 +430,32 @@
     }
   }
 
-  .vent {
+  // 수면 아래 햇빛 그물무늬: 두 겹의 빛 얼룩이 서로 다른 방향으로 흐른다
+  .caustics {
     position: absolute;
-    right: 14%;
-    top: -60px;
-    width: 34px;
+    inset: 0;
+    pointer-events: none;
+    mix-blend-mode: screen;
 
-    svg {
-      display: block;
-      width: 100%;
-      fill: #120607;
-    }
-    .plume {
+    &::before,
+    &::after {
+      content: '';
       position: absolute;
-      left: 50%;
-      bottom: 92%;
-      width: 60px;
-      height: 140px;
-      transform: translateX(-50%);
-      background: radial-gradient(ellipse at 50% 100%, rgba(255, 110, 60, 0.55), transparent 65%);
-      filter: blur(8px);
-      animation: plume 2.4s ease-in-out infinite alternate;
+      inset: -20%;
+      background:
+        radial-gradient(42px 16px at 20% 30%, rgba(255, 255, 255, 0.22), transparent 70%),
+        radial-gradient(30px 12px at 70% 62%, rgba(255, 255, 255, 0.18), transparent 70%),
+        radial-gradient(54px 18px at 46% 86%, rgba(255, 255, 255, 0.16), transparent 70%),
+        radial-gradient(26px 10px at 86% 14%, rgba(255, 255, 255, 0.2), transparent 70%);
+      background-size: 170px 130px;
+      animation: caustic 7s linear infinite;
+    }
+    &::after {
+      background-size: 230px 170px;
+      transform: rotate(18deg);
+      animation-duration: 11s;
+      animation-direction: reverse;
+      opacity: 0.8;
     }
   }
 
@@ -573,10 +621,9 @@
       opacity: 0.6;
     }
   }
-  @keyframes plume {
+  @keyframes caustic {
     to {
-      transform: translateX(-50%) scale(1.15, 1.25);
-      opacity: 0.7;
+      background-position: 170px 130px;
     }
   }
   @keyframes flicker {
