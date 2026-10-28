@@ -10,7 +10,7 @@
   import SeabedLife from './SeabedLife.svelte';
   import DepthGauge from './DepthGauge.svelte';
   import { Particles } from './particles';
-  import { T_COUNT, T_IMPACT, finalFrame, frameAt, totalDuration, type Frame } from './timeline';
+  import { BED_SURFACE, T_COUNT, T_IMPACT, finalFrame, frameAt, totalDuration, type Frame } from './timeline';
 
   interface Props {
     result: MeasureResult;
@@ -225,7 +225,7 @@
 
       if (!fired.settle && f.phase === 'settle') {
         fired.settle = true;
-        particles.dust(w / 2, f.seabedY * h + 4);
+        particles.dust(w / 2, (f.seabedY + BED_SURFACE) * h);
         sound.stopDrone();
         sound.thud();
       }

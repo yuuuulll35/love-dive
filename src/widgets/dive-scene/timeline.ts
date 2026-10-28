@@ -24,6 +24,11 @@ export const VOID_SINK = 8.5;
 
 export const MAX_DEPTH = 10935;
 export const WEIGHT_REST_Y = 0.4;
+/** 착저: 카메라가 멈추고 추가 화면 아래쪽 모래 위에 내려앉는다 */
+export const LAND_Y = 0.775;
+/** 해저면 요소의 top. 모래 표면은 여기서 약 0.16(화면 높이 비) 아래 */
+export const BED_Y = 0.64;
+export const BED_SURFACE = 0.157;
 /** 카운트다운 동안 추가 매달려 있는 높이 */
 export const HANG_Y = 0.24;
 export const SURFACE_START_Y = 0.5;
@@ -141,8 +146,9 @@ export function frameAt(t: number, target: number, kind: MeasureKind, hot: boole
     const vent = hot ? easeOutCubic(invLerp(Math.max(0, 1 - 1.5 / sinkT), 1, u)) : 0;
     return {
       ...base, phase: 'sink', depth, depthRatio: depth / MAX_DEPTH,
-      surfaceY: -1, weightY: WEIGHT_REST_Y,
-      seabedY: seabedU > 0 ? lerp(1.15, WEIGHT_REST_Y + 0.07, easeOutCubic(seabedU)) : 1.3,
+      surfaceY: -1,
+      weightY: lerp(WEIGHT_REST_Y, LAND_Y, easeOutCubic(seabedU)),
+      seabedY: seabedU > 0 ? lerp(1.15, BED_Y, easeOutCubic(seabedU)) : 1.3,
       speed: clamp(easeDiveVelocity(u) / 2.1, 0.04, 1),
       vent,
     };
@@ -151,8 +157,8 @@ export function frameAt(t: number, target: number, kind: MeasureKind, hot: boole
   const tt = ts - sinkT;
   return {
     ...base, phase: tt < T_SETTLE ? 'settle' : 'done',
-    depth: target, depthRatio: target / MAX_DEPTH, surfaceY: -1, weightY: WEIGHT_REST_Y,
-    seabedY: WEIGHT_REST_Y + 0.07, vent: hot ? 1 : 0,
+    depth: target, depthRatio: target / MAX_DEPTH, surfaceY: -1, weightY: LAND_Y,
+    seabedY: BED_Y, vent: hot ? 1 : 0,
   };
 }
 
