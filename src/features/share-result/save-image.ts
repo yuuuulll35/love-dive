@@ -94,10 +94,45 @@ export async function renderCardBlob(node: HTMLElement): Promise<Blob> {
     style: { boxShadow: 'none', margin: '0' },
     filter: (el) => !(el instanceof HTMLElement && el.dataset.noCapture !== undefined),
   });
-  const trimmed = trimBottom(canvas);
-  const blob = await new Promise<Blob | null>((resolve) => trimmed.toBlob(resolve, 'image/png'));
+  const framed = onBackdrop(trimBottom(canvas), node.dataset.tier ?? 'light');
+  const blob = await new Promise<Blob | null>((resolve) => framed.toBlob(resolve, 'image/png'));
   if (!blob) throw new Error('render failed');
   return blob;
+}
+
+// 저장본 배경: 우표를 올려 둔 종이·물빛 바탕 (깊이 분위기와 같은 색)
+const BACKDROPS: Record<string, [string, string]> = {
+  light: ['#ffdfe8', '#d6f0fb'],
+  soft: ['#cfe6f4', '#7fb3d6'],
+  deep: ['#1a2a55', '#060c22'],
+  abyss: ['#141722', '#020306'],
+  void: ['#1a0a10', '#020102'],
+};
+
+/** 카드를 여백 있는 배경 위에 그림자와 함께 올린다 (인스타 4:5 비율에 가깝게 위아래 여백을 맞춤) */
+function onBackdrop(card: HTMLCanvasElement, tier: string): HTMLCanvasElement {
+  const pad = Math.round(card.width * 0.12);
+  const width = card.width + pad * 2;
+  const height = Math.max(card.height + pad * 2, Math.round(width * 1.25));
+  const out = document.createElement('canvas');
+  out.width = width;
+  out.height = height;
+  const ctx = out.getContext('2d')!;
+  const [top, bottom] = BACKDROPS[tier] ?? BACKDROPS.light;
+  const g = ctx.createLinearGradient(0, 0, 0, height);
+  g.addColorStop(0, top);
+  g.addColorStop(1, bottom);
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, width, height);
+  const x = pad;
+  const y = Math.round((height - card.height) / 2);
+  ctx.save();
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.32)';
+  ctx.shadowBlur = pad * 0.5;
+  ctx.shadowOffsetY = pad * 0.18;
+  ctx.drawImage(card, x, y);
+  ctx.restore();
+  return out;
 }
 
 /** 복제본은 글자 크기 내림 때문에 원본보다 살짝 짧게 그려진다 → 아래쪽 빈 줄을 잘라 낸다 */

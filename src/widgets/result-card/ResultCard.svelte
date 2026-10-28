@@ -157,14 +157,14 @@
       {#each [20, 56, 100, 136] as x (x)}<circle cx={x + 2} cy="6" r="1.1" />{/each}
     </svg>
 
-    <!-- ───── 뒷면: 풀이 ───── -->
-    <div class="tear" aria-hidden="true"></div>
+    {#if result.pair}
+      <p class="pair">{result.pair}</p>
+    {/if}
 
-    <div class="reading">
-      {#if result.pair}
-        <p class="pair">{result.pair}</p>
-      {/if}
+    <!-- ───── 뒷면: 풀이 (이미지 저장에서는 빼고 카드 앞면만 남긴다) ───── -->
+    <div class="tear" aria-hidden="true" data-no-capture></div>
 
+    <div class="reading" data-no-capture>
       {#if result.tags.length}
         <ul class="tags" aria-label="두드러진 축">
           {#each result.tags as tag (tag)}<li>#{tag}</li>{/each}
@@ -617,11 +617,12 @@
   }
 
   .pair {
-    margin: 0;
-    font-size: 14px;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    color: var(--ink-2);
+    margin: 12px 0 0;
+    font-family: var(--font-kserif);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--ink);
   }
 
   .tags {
