@@ -1,6 +1,7 @@
 <script lang="ts">
   import Button from '$shared/ui/Button.svelte';
   import { copyText } from './clipboard';
+  import { shareUrl } from './share-url';
   import { saveCardImage } from './save-image';
 
   interface Props {
@@ -10,8 +11,10 @@
     onreplay?: () => void;
     /** 이 결과에 페어 이미지가 붙어 있는지 (링크에는 담기지 않는다) */
     hasImage?: boolean;
+    /** 링크 미리보기 페이지 이름 (share-key.ts) */
+    shareKey: string;
   }
-  let { card, filename, onretry, onreplay, hasImage = false }: Props = $props();
+  let { card, filename, onretry, onreplay, hasImage = false, shareKey }: Props = $props();
 
   let toast = $state('');
   let toastSub = $state('');
@@ -31,9 +34,10 @@
     timer = setTimeout(() => (toast = ''), sub ? 3600 : 2400);
   }
 
-  // 결과 링크: 코드와 페어 이름이 주소에 담겨 있어서, 받은 사람도 같은 결과를 보게 된다 (이미지는 제외)
+  // 결과 링크: 코드와 페어 이름이 주소에 담겨 있어서, 받은 사람도 같은 결과를 보게 된다 (이미지는 제외).
+  // 공개 사이트에서는 결과 종류별 미리보기 페이지(s/<key>/)를 거쳐 메신저에 칭호·구간이 담긴 카드가 뜬다
   async function copyLink() {
-    const ok = await copyText(location.href);
+    const ok = await copyText(shareUrl(shareKey));
     if (!ok) return say('복사하지 못했어요. 주소창의 링크를 직접 복사해 주세요');
     // 다른 페이지 안에 끼워진 미리보기라면 이 주소는 바깥에서 열리지 않을 수 있다
     const sub = hasImage ? '페어 이미지는 링크로 공유되지 않아요. 이미지 저장을 이용해 주세요' : '';

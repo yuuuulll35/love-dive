@@ -10,6 +10,7 @@
   import Corners from '$shared/ui/Corners.svelte';
   import { sound } from '$shared/lib/sound.svelte';
   import { pairImage } from '$features/pair-image/store.svelte';
+  import { sharePageKey } from '$features/share-result/share-key';
   import { ERROR_COPY } from '$shared/config/copy';
 
   interface Props {
@@ -95,6 +96,7 @@
           onretry={retry}
           onreplay={replay}
           hasImage={!!pairImage.for(token)}
+          shareKey={sharePageKey(r.zone.id, r.archetypeId)}
         />
       </div>
     </main>
