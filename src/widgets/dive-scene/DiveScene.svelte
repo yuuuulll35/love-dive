@@ -345,9 +345,9 @@
   <div
     class="weight"
     style:top="{frame.weightY * 100}dvh"
-    style:transform="translate(-50%, -50%) rotate({Math.sin(time * 1.4) * (frame.phase === 'bob' ? 7 : 3)}deg)"
+    style:transform="translate(-50%, -50%)"
   >
-    <Plummet glow={frame.depth > 1000} {image} />
+    <Plummet glow={frame.depth > 1000} {image} tilt={Math.sin(time * 1.4) * (frame.phase === 'bob' ? 7 : 3)} />
   </div>
 
   <!-- HUD -->

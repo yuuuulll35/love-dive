@@ -7,13 +7,16 @@
     size?: number;
     /** 페어 이미지(배경 없는 PNG). 있으면 하트 대신 이 이미지가 매달린다 */
     image?: string | null;
+    /** 추만 기울이는 각도(°). 줄은 늘 곧게 매달려 있다 */
+    tilt?: number;
   }
-  let { thread = 2000, glow = false, size = 44, image = null }: Props = $props();
+  let { thread = 2000, glow = false, size = 44, image = null, tilt = 0 }: Props = $props();
   const uid = $props.id();
 </script>
 
 <div class="plummet" class:glow class:has-image={!!image} style:--size="{size}px" style:--thread="{thread}px" aria-hidden="true">
   <span class="thread"></span>
+  <span class="body" style:transform="rotate({tilt}deg)">
   {#if image}
     <img class="charm" src={image} alt="" />
   {:else}
@@ -42,6 +45,7 @@
     />
       </svg>
   {/if}
+  </span>
 </div>
 
 <style lang="scss">
@@ -67,6 +71,12 @@
     transform: translateX(-50%);
     background: var(--rope);
     box-shadow: 0 0 0 0.5px var(--rope-edge);
+  }
+
+  // 줄이 걸린 고리를 축으로 추만 흔들린다
+  .body {
+    display: block;
+    transform-origin: 50% 8%;
   }
 
   .has-image {
