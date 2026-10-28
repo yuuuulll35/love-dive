@@ -186,7 +186,6 @@
           sinkStart = t;
           // 입수하자마자 얕은 바다의 생기: 열대어와 물고기 떼부터
           spawn('tropical', { pos: 0.66, far: false });
-          spawn('school', { pos: 0.22, far: true });
         }
         if (!humpback && t - sinkStart > 0.5) {
           humpback = true;

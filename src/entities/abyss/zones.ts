@@ -19,9 +19,9 @@ export type CreatureId =
   | 'squid' | 'dumbo'
   | 'snailfish' | 'amphipod';
 
-/** 연출 중 구간마다 계속 지나가는 생물 풀 (첫 번째가 구간 대표) */
+/** 연출 중 구간마다 계속 지나가는 생물 풀 (첫 번째가 구간 대표). 물고기 떼는 캔버스(boids)가 따로 그린다 */
 export const ZONE_LIFE: Record<string, readonly CreatureId[]> = {
-  sunlight: ['tropical', 'school', 'dolphin', 'turtle', 'tropical', 'ray', 'school'],
+  sunlight: ['dolphin', 'turtle', 'tropical', 'ray', 'turtle'],
   twilight: ['jelly', 'lantern', 'siphon', 'whale', 'jelly'],
   midnight: ['angler', 'siphon', 'vampire', 'lantern', 'sperm'],
   abyss: ['squid', 'dumbo', 'vampire', 'siphon'],

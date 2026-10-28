@@ -1,8 +1,9 @@
 import type { Frame } from './timeline';
+import { School, type SchoolStyle } from './school';
 
 interface P {
   x: number; y: number; vx: number; vy: number;
-  r: number; life: number; max: number; kind: 'snow' | 'bubble' | 'drop' | 'dust' | 'glow';
+  r: number; life: number; max: number; kind: 'snow' | 'bubble' | 'drop' | 'dust' | 'glow' | 'bokeh';
   a: number; seed: number;
   /** 발광 색 (r,g,b) */
   c?: string;
@@ -39,6 +40,9 @@ export class Particles {
     return this.scroll;
   }
   private sparkAcc = 0;
+  private bokehAcc = 0;
+  private schools: School[] = [];
+  private schoolAcc = 1.2;
   private time = 0;
 
   constructor(private canvas: HTMLCanvasElement) {
@@ -117,6 +121,31 @@ export class Particles {
       }
     }
 
+    // 물고기 떼(boids): 1,200m 까지. 카메라가 내려간 만큼 위로 밀려난다
+    const active = f.phase === 'sink' || f.phase === 'bob' || (f.phase === 'drop' && f.weightY > f.surfaceY);
+    if (active && f.depth < 1200 && this.schools.length < 2) {
+      this.schoolAcc -= dt;
+      if (this.schoolAcc <= 0) {
+        this.schoolAcc = 2.2 + Math.random() * 1.8;
+        const style: SchoolStyle = f.depth < 200 ? (Math.random() < 0.55 ? 'silver' : 'tropical') : 'lantern';
+        this.schools.push(new School(this.w, this.h, style, style === 'tropical' ? 14 : 26 + Math.floor(Math.random() * 14)));
+      }
+    }
+    for (const sc of this.schools) sc.update(dt, flow * dt * 0.32, time);
+    this.schools = this.schools.filter((sc) => !sc.done);
+
+    // 화면 바로 앞을 스치는 흐릿한 입자 (피사계 심도): 내려가는 속도감
+    if (underwater && f.phase === 'sink' && f.speed > 0.08) {
+      this.bokehAcc += dt * (0.6 + f.speed * 1.4);
+      while (this.bokehAcc >= 1) {
+        this.bokehAcc -= 1;
+        this.ps.push({
+          kind: 'bokeh', x: Math.random() * this.w, y: H + 60, vx: (Math.random() - 0.5) * 20, vy: 0,
+          r: 16 + Math.random() * 30, life: 0, max: 4, a: 0.05 + Math.random() * 0.06, seed: 0,
+        });
+      }
+    }
+
     // 표층: 햇빛 반짝임
     if (underwater && f.depth < 180 && f.phase !== 'done') {
       this.sparkAcc += dt * 5;
@@ -175,9 +204,14 @@ export class Particles {
           p.y -= flow * 0.4 * dt;
           p.x += p.vx * dt;
           break;
+        case 'bokeh':
+          p.y -= flow * 2.2 * dt + 20 * dt;
+          p.x += p.vx * dt;
+          if (p.y < -80) p.life = p.max;
+          break;
       }
     }
-    this.ps = this.ps.filter((p) => p.life < p.max && p.y > -40);
+    this.ps = this.ps.filter((p) => p.life < p.max && (p.y > -40 || p.kind === 'bokeh'));
     for (const r of this.ripples) r.age += dt;
     this.ripples = this.ripples.filter((r) => r.age < r.max);
   }
@@ -187,7 +221,30 @@ export class Particles {
     ctx.clearRect(0, 0, this.w, this.h);
     const surfacePx = f.surfaceY * this.h;
     const visibleSnow = f.surfaceY < 0.9 ? Math.min(1, 0.4 + f.depthRatio * 3) : 0.35;
-    this.drawWalls(f);
+    this.drawBackdrop(f);
+    this.drawWalls(f, 'far');
+    const schoolAlpha = f.surfaceY < 0.98 ? 1 : 0;
+    if (schoolAlpha) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(0, Math.max(0, surfacePx + 6), this.w, this.h);
+      ctx.clip();
+      for (const sc of this.schools) sc.draw(ctx, schoolAlpha);
+      ctx.restore();
+    }
+    this.drawWalls(f, 'near');
+    // 수면 바로 아래는 빛에 잠긴 물안개: 바위·첨탑·물고기 떼가 잘린 듯 끊기지 않고 서서히 드러난다
+    if (f.surfaceY > -0.6 && f.surfaceY < 0.98) {
+      const y0 = Math.max(0, surfacePx);
+      const g = ctx.createLinearGradient(0, y0, 0, y0 + this.h * 0.22);
+      g.addColorStop(0, 'rgba(0,0,0,1)');
+      g.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.save();
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.fillStyle = g;
+      ctx.fillRect(0, y0 - 2, this.w, this.h * 0.22 + 2);
+      ctx.restore();
+    }
 
     for (const p of this.ps) {
       const fade = p.max === Infinity ? 1 : 1 - p.life / p.max;
@@ -226,6 +283,16 @@ export class Particles {
           ctx.fill();
           break;
         }
+        case 'bokeh': {
+          const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r);
+          g.addColorStop(0, `rgba(230,245,255,${p.a})`);
+          g.addColorStop(1, 'rgba(230,245,255,0)');
+          ctx.fillStyle = g;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fill();
+          break;
+        }
         case 'glow': {
           const tw = Math.sin((p.life / p.max) * Math.PI);
           const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 6);
@@ -259,57 +326,109 @@ export class Particles {
    * 얕은 곳은 산호초 바위(산호·부채산호·다시마·말미잘과 흰동가리), 깊어질수록 어두운 절벽,
    * 초심해에서는 좁은 해구가 된다. 먼 층은 느리게, 가까운 층은 빠르게 흘러 깊이감이 생긴다.
    */
-  private drawWalls(f: Frame) {
+  /**
+   * 가장 먼 배경층: 물안개에 잠긴 바위 첨탑과 먼 다시마. 아주 느리게 흘러 공간이 깊어 보인다.
+   * 물빛과 거의 같은 색이라 '멀리 있다'는 느낌만 남는다.
+   */
+  private drawBackdrop(f: Frame) {
     const { ctx, w, h } = this;
-    const top = f.surfaceY < 0.98 ? Math.max(-10, f.surfaceY * h + 24) : h + 1;
+    const surfacePx = f.surfaceY * h;
+    const top = f.surfaceY < 0.98 ? Math.max(0, surfacePx + 12) : h;
+    if (top >= h) return;
+    const k = smooth(80, 2500, f.depth);
+    const tone = [0, 1, 2].map((i) => Math.round([22, 92, 112][i] + ([4, 10, 26][i] - [22, 92, 112][i]) * k)).join(',');
+    const alpha = 0.3 - k * 0.18;
+    const SPAN = 300;
+    const speed = 0.18;
+    const off = this.scroll * speed;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, top, w, h - top);
+    ctx.clip();
+    // 바위 첨탑: 화면 아래에서 솟아 위로 흘러간다
+    for (let i = Math.floor(off / SPAN) - 1; i <= Math.ceil((off + h) / SPAN) + 1; i++) {
+      const r = Math.abs(Math.sin(i * 12.9898) * 43758.5453) % 1;
+      const r2 = Math.abs(Math.sin(i * 78.233) * 12543.1) % 1;
+      const cx = w * (0.22 + r * 0.56);
+      const baseY = i * SPAN - off + h * 0.9;
+      const tall = 160 + r2 * 220;
+      const half = 26 + r * 40;
+      ctx.fillStyle = `rgba(${tone},${alpha})`;
+      ctx.beginPath();
+      ctx.moveTo(cx - half * 1.6, baseY + 40);
+      ctx.quadraticCurveTo(cx - half, baseY - tall * 0.4, cx - half * 0.35, baseY - tall);
+      ctx.quadraticCurveTo(cx, baseY - tall - 18, cx + half * 0.4, baseY - tall * 0.92);
+      ctx.quadraticCurveTo(cx + half * 1.1, baseY - tall * 0.3, cx + half * 1.7, baseY + 40);
+      ctx.closePath();
+      ctx.fill();
+    }
+    // 얕은 곳: 멀리 흔들리는 다시마 숲 실루엣
+    const kelpFade = 1 - smooth(120, 400, f.depth);
+    if (kelpFade > 0.02) {
+      ctx.strokeStyle = `rgba(30,110,100,${0.22 * kelpFade})`;
+      ctx.lineWidth = 3;
+      for (let j = 0; j < 7; j++) {
+        const bx = w * (0.18 + j * 0.11);
+        ctx.beginPath();
+        for (let y = h + 10; y >= top + 40; y -= 14) {
+          const x = bx + Math.sin(this.time * 0.7 + y / 80 + j) * 10;
+          if (y === h + 10) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+
+  private drawWalls(f: Frame, which: 'far' | 'near') {
+    const { ctx, w, h } = this;
+    const surfacePx = f.surfaceY * h;
+    const top = f.surfaceY < 0.98 ? Math.max(-10, surfacePx + 12) : h + 1;
     if (top >= h) return;
     const d = f.depth;
     const reach = 0.12 + smooth(1500, 6000, d) * 0.05 + smooth(6000, 9500, d) * 0.12;
     // 바위 색: 얕은 곳 청록빛 바위 → 깊은 곳 거의 검정
     const k = smooth(80, 1500, d);
     const mix = (a: number[], b: number[]) => a.map((v, i) => Math.round(v + (b[i] - v) * k));
-    const near = mix([36, 96, 104], [2, 4, 10]);
-    const far = mix([96, 170, 176], [120, 150, 200]);
-    const nearA = 0.92 - k * 0.2;
-    const farA = 0.4 - k * 0.33;
-
-    const layers = [
-      { speed: 0.45, width: reach * 1.3, fill: `rgba(${far},${farA})`, rim: null as string | null, seed: 1.7, decor: false },
-      {
-        speed: 1, width: reach, fill: `rgba(${near},${nearA})`,
-        rim: k < 0.5 ? `rgba(255,255,240,${0.22 * (1 - k * 2)})` : 'rgba(127,246,228,0.10)', seed: 4.2, decor: true,
-      },
-    ];
+    const L =
+      which === 'far'
+        ? { speed: 0.45, width: reach * 1.3, fill: `rgba(${mix([96, 170, 176], [120, 150, 200])},${0.4 - k * 0.33})`, rim: null as string | null, seed: 1.7, rise: 0.5 }
+        : {
+            speed: 1, width: reach, fill: `rgba(${mix([36, 96, 104], [2, 4, 10])},${0.92 - k * 0.2})`,
+            rim: k < 0.5 ? `rgba(255,255,240,${0.22 * (1 - k * 2)})` : 'rgba(127,246,228,0.10)', seed: 4.2, rise: 0.36,
+          };
+    // 수면 근처에서는 벽이 아니라 아래에서 솟은 암초: 수면에서 멀어질수록 서서히 넓어진다
+    const taper = (y: number) => (f.surfaceY > -0.9 ? smooth(surfacePx + 20, surfacePx + 20 + h * L.rise, y) : 1);
 
     ctx.save();
     ctx.beginPath();
     ctx.rect(0, top, w, h - top + 20);
     ctx.clip();
-    for (const L of layers) {
-      for (const side of [0, 1]) {
-        const seed = L.seed + side * 9.1;
-        const edge = (y: number) => {
-          const yw = y + this.scroll * L.speed;
-          return w * (L.width + 0.035 * Math.sin(yw / 95 + seed) + 0.022 * Math.sin(yw / 41 + seed * 2.3) + 0.01 * Math.sin(yw / 13 + seed * 3.1));
-        };
-        const x0 = side ? w : 0;
-        ctx.beginPath();
-        ctx.moveTo(x0, top - 10);
-        for (let y = top - 10; y <= h + 10; y += 10) {
-          const e = Math.max(0, edge(y));
-          ctx.lineTo(side ? w - e : e, y);
-        }
-        ctx.lineTo(x0, h + 10);
-        ctx.closePath();
-        ctx.fillStyle = L.fill;
-        ctx.fill();
-        if (L.rim) {
-          ctx.strokeStyle = L.rim;
-          ctx.lineWidth = 1.5;
-          ctx.stroke();
-        }
-        if (L.decor) this.drawReef(side, edge, top, L.speed, d);
+    for (const side of [0, 1]) {
+      const seed = L.seed + side * 9.1;
+      const edge = (y: number) => {
+        const yw = y + this.scroll * L.speed;
+        const t = taper(y);
+        const bumps = 0.035 * Math.sin(yw / 95 + seed) + 0.022 * Math.sin(yw / 41 + seed * 2.3) + 0.01 * Math.sin(yw / 13 + seed * 3.1);
+        return w * (L.width * t ** 0.8 + bumps * Math.sqrt(t));
+      };
+      const x0 = side ? w : 0;
+      ctx.beginPath();
+      ctx.moveTo(x0, top - 10);
+      for (let y = top - 10; y <= h + 10; y += 8) {
+        const e = Math.max(0, edge(y));
+        ctx.lineTo(side ? w - e : e, y);
       }
+      ctx.lineTo(x0, h + 10);
+      ctx.closePath();
+      ctx.fillStyle = L.fill;
+      ctx.fill();
+      if (L.rim) {
+        ctx.strokeStyle = L.rim;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+      if (which === 'near') this.drawReef(side, edge, top, L.speed, d);
     }
     ctx.restore();
   }
@@ -330,6 +449,7 @@ export class Particles {
       const y = i * SPACING - offset + (side ? SPACING / 2 : 0);
       if (y < top - 40 || y > h + 60) continue;
       const e = Math.max(0, edge(y));
+      if (e < 14) continue;
       const x = side ? w - e : e;
       const kind = (((i * 7 + side * 3) % 5) + 5) % 5;
       const sway = Math.sin(this.time * 1.6 + i) * 0.12;
