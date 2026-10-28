@@ -1,4 +1,4 @@
-<!-- 두 사람의 사랑의 무게: 이유 문장 · 상세 항목(12축 점수 | 무게 분해) · 칭호·온도 근거 -->
+<!-- 두 사람의 사랑의 무게: 이유 문장 · 상세 항목(항목별 점수 | 무게 비율) · 칭호·온도 근거 -->
 <script lang="ts">
   import Corners from '$shared/ui/Corners.svelte';
   import { explain, AXIS_INFO, anchorFor, type MeasureResult } from '$entities/abyss';
@@ -16,15 +16,28 @@
   const maxShare = $derived(Math.max(0.01, ...topPulls.map((p) => p.share), ex.buoyShare));
   const pct = (x: number) => `${Math.round(x * 100)}%`;
 
-  // 상세 항목 탭: 12축 점수 / 무게 분해
+  // 상세 항목 탭: 항목별 점수 / 무게 비율
   let tab = $state<'pull' | 'axes'>('axes');
-  // OOC 코드와 같은 순서 (S1~S12)
+  // 하는 일별로 묶어 보여 준다. 묶음 안에서는 점수 높은 순
+  const GROUPS = [
+    { id: 'weight', title: '가라앉히는 마음' },
+    { id: 'modifier', title: '무게를 키우는 것' },
+    { id: 'rest', title: '떠오르는 힘과 분위기' },
+  ] as const;
   const axes = $derived(
     getTables().slotAxes.map((k) => ({
       key: k,
       ...AXIS_INFO[k],
       score: result.scores[k],
       now: anchorFor(k, result.scores[k]),
+    })),
+  );
+  const groups = $derived(
+    GROUPS.map((g) => ({
+      ...g,
+      items: axes
+        .filter((a) => (g.id === 'rest' ? a.group === 'buoy' || a.group === 'tone' : a.group === g.id))
+        .sort((a, b) => (g.id === 'rest' ? 0 : b.score - a.score)),
     })),
   );
 
@@ -72,20 +85,26 @@
       {/if}
       <p class="hint">끌어내린 힘 전체를 100%로 봤을 때 각 요소의 몫이에요. 시너지는 두 축이 함께 높을 때만 생겨요.</p>
     {:else}
-      <ol class="axes">
-        {#each axes as a (a.key)}
-          <li class={a.group}>
-            <div class="row">
-              <span class="name">{a.label}<small>{a.desc}</small></span>
-              <span class="dots" aria-hidden="true">
-                {#each Array(9) as _, i (i)}<i class:on={i < a.score}></i>{/each}
-              </span>
-              <span class="val">{a.score}</span>
-            </div>
-            <p class="now">{a.now}</p>
-          </li>
-        {/each}
-      </ol>
+      {#each groups as g (g.id)}
+        <div class="group {g.id}">
+          <p class="gtitle"><span aria-hidden="true">✦</span>{g.title}</p>
+          <ul class="tiles">
+            {#each g.items as a (a.key)}
+              <li class={a.group} class:strong={a.score >= 7}>
+                <div class="top">
+                  <span class="name">{a.label}</span>
+                  <span class="val">{a.score}</span>
+                </div>
+                <span class="meaning">{a.desc}</span>
+                <span class="dots" aria-hidden="true">
+                  {#each Array(9) as _, i (i)}<i class:on={i < a.score}></i>{/each}
+                </span>
+                <p class="now">{a.now}</p>
+              </li>
+            {/each}
+          </ul>
+        </div>
+      {/each}
       <p class="hint">점수는 0~9예요. 높을수록 그 성향이 강하고, 신뢰가 높으면 덜 가라앉아요.</p>
     {/if}
   </div>
@@ -161,9 +180,16 @@
     p {
       margin: 0;
       font-size: 14.5px;
-      line-height: 1.7;
+      line-height: 1.75;
       color: var(--ink-2);
       text-wrap: pretty;
+    }
+    // 첫 문장은 이 관계의 한 줄 요약
+    p:first-child {
+      font-family: var(--font-kserif);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--ink);
     }
   }
 
@@ -207,70 +233,109 @@
     }
   }
 
-  // ── 항목별 점수 ──
-  .axes {
+  // ── 항목별 점수: 하는 일별 묶음 + 작은 카드 ──
+  .group + .group {
+    margin-top: 16px;
+  }
+  .gtitle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 8px;
+    font-family: var(--font-kserif);
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--ink);
+
+    span {
+      font-size: 10px;
+      color: var(--frame);
+    }
+    &::after {
+      content: '';
+      flex: 1;
+      border-top: 1px solid var(--rule);
+    }
+  }
+
+  .tiles {
     display: grid;
-    gap: 11px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
     margin: 0;
     padding: 0;
     list-style: none;
 
-    .row {
+    li {
       display: grid;
-      grid-template-columns: 1fr 78px 1.2em;
-      align-items: center;
-      gap: 10px;
+      gap: 4px;
+      align-content: start;
+      padding: 10px 11px 11px;
+      border: 1px solid var(--rule);
+      border-radius: 6px;
+      background: var(--stat-bg);
     }
-    .name {
+    li.strong {
+      border-color: var(--frame-soft);
+      box-shadow: inset 0 0 0 1px var(--frame-soft);
+    }
+    .top {
       display: flex;
       align-items: baseline;
+      justify-content: space-between;
       gap: 6px;
-      min-width: 0;
+    }
+    .name {
       font-size: 14px;
       font-weight: 700;
-      white-space: nowrap;
-
-      small {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        font-size: 12px;
-        font-weight: 500;
-        color: var(--ink-2);
-        opacity: 0.85;
-      }
-    }
-    // 가는 네모 칸 9개가 이어진 직선 눈금
-    .dots {
-      display: flex;
-      gap: 2px;
-
-      i {
-        flex: 1;
-        height: 4px;
-        background: var(--rule);
-      }
-      i.on {
-        background: var(--accent);
-      }
-    }
-    .buoy .dots i.on {
-      background: var(--buoy);
-    }
-    .tone .dots i.on {
-      background: var(--accent-temp, var(--ink-2));
     }
     .val {
-      text-align: right;
-      font-size: 14px;
-      font-weight: 700;
-      font-variant-numeric: tabular-nums;
+      font-family: var(--font-serif);
+      font-size: 22px;
+      font-weight: 600;
+      line-height: 1;
+      font-variant-numeric: lining-nums;
+      color: var(--ink-2);
+    }
+    .strong .val {
+      color: var(--accent);
+    }
+    .meaning {
+      font-size: 11.5px;
+      color: var(--ink-2);
+      opacity: 0.8;
     }
     .now {
       margin: 2px 0 0;
-      font-size: 13px;
-      line-height: 1.5;
-      color: var(--ink-2);
+      font-size: 12.5px;
+      line-height: 1.45;
+      color: var(--ink);
+      word-break: keep-all;
     }
+  }
+  // 가는 네모 칸 9개가 이어진 직선 눈금
+  .dots {
+    display: flex;
+    gap: 2px;
+    margin-top: 2px;
+
+    i {
+      flex: 1;
+      height: 3px;
+      background: var(--rule);
+    }
+    i.on {
+      background: var(--accent);
+    }
+  }
+  .buoy .dots i.on {
+    background: var(--buoy);
+  }
+  .tiles li.buoy.strong .val {
+    color: var(--buoy);
+  }
+  .tone .dots i.on {
+    background: var(--accent-temp, var(--ink-2));
   }
 
   // ── 무게 분해 ──
