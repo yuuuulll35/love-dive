@@ -17,6 +17,12 @@ class Sound {
   private master: GainNode | null = null;
   private drone: { stop: () => void; setDepth: (x: number) => void } | null = null;
 
+  /** 켜기/끄기를 정해서 설정 (반드시 탭·클릭 안에서 불러야 브라우저가 소리를 허용한다) */
+  set(on: boolean) {
+    if (this.enabled !== on) this.toggle();
+    else if (on) this.ensure();
+  }
+
   toggle() {
     this.enabled = !this.enabled;
     try {

@@ -18,9 +18,11 @@
     image?: string | null;
     /** true 면 연출 없이 최종 프레임 (reduced-motion · 결과 재표시) */
     instant?: boolean;
+    /** true 면 카운트다운 직전에서 멈춰 기다린다 (소리 켤지 묻는 동안) */
+    paused?: boolean;
     ondone?: () => void;
   }
-  let { result, image = null, instant = false, ondone }: Props = $props();
+  let { result, image = null, instant = false, paused = false, ondone }: Props = $props();
 
   const hot = $derived(result.temperature.id === 'hot');
   const kind = $derived(result.kind);
@@ -32,7 +34,7 @@
   // 카운트다운: 3 · 2 · 1 · LOVE DIVE!
   const COUNT_STEP = 0.65;
   const countLabel = $derived.by(() => {
-    if (instant || done || time >= 0.45) return null;
+    if (instant || paused || done || time >= 0.45) return null;
     if (time >= 0) return 'LOVE DIVE!';
     const i = Math.floor((time + T_COUNT) / COUNT_STEP);
     return i < 3 ? String(3 - i) : 'LOVE DIVE!';
@@ -152,7 +154,8 @@
     const step = (now: number) => {
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
-      t += dt;
+      // 소리 선택을 기다리는 동안은 시간을 멈춘다 (하늘·수면·입자는 계속 움직임)
+      if (!paused) t += dt;
       time = t;
       const f = frameAt(t, target, kind, hot);
       frame = f;

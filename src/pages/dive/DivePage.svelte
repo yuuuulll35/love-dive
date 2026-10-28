@@ -25,6 +25,13 @@
   let showResult = $state(false);
   let replayKey = $state(0);
   let instant = $state(reduced);
+  // 처음 재생할 때만 소리를 켤지 묻는다 (연출 다시 보기·reduced-motion 은 묻지 않음)
+  let asking = $state(!reduced);
+
+  function begin(withSound: boolean) {
+    sound.set(withSound);
+    asking = false;
+  }
   let card = $state<HTMLElement>();
   let scene = $state<{ skip: () => void }>();
 
@@ -42,10 +49,24 @@
 {#if outcome?.ok}
   {@const r = outcome.result}
   {#key replayKey}
-    <DiveScene bind:this={scene} result={r} image={pairImage.for(token)} {instant} ondone={() => (showResult = true)} />
+    <DiveScene bind:this={scene} result={r} image={pairImage.for(token)} {instant} paused={asking} ondone={() => (showResult = true)} />
   {/key}
 
-  <div class="controls" class:hidden={showResult}>
+  {#if asking}
+    <div class="ask" role="dialog" aria-modal="true" aria-labelledby="ask-title">
+      <div class="ask-card">
+        <svg class="ask-icon" width="28" height="28" viewBox="0 0 18 18" aria-hidden="true"><path d="M3 7h3l4-3v10l-4-3H3z" fill="currentColor" /><path d="M12.5 6.5a3.5 3.5 0 010 5M14.5 4.5a6.4 6.4 0 010 9" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" /></svg>
+        <p class="ask-title" id="ask-title">소리를 켤까요?</p>
+        <p class="ask-sub">물에 빠지는 소리, 고래 울음, 깊은 바다의 웅웅거림이 들려요.</p>
+        <div class="ask-actions">
+          <Button variant="primary" block onclick={() => begin(true)}>소리 켜고 시작</Button>
+          <button type="button" class="ask-mute" onclick={() => begin(false)}>소리 없이 시작</button>
+        </div>
+      </div>
+    </div>
+  {/if}
+
+  <div class="controls" class:hidden={showResult || asking}>
     <button class="ctl mono" type="button" onclick={() => sound.toggle()} aria-pressed={sound.enabled} aria-label="효과음">
       {#if sound.enabled}
         <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M3 7h3l4-3v10l-4-3H3z" fill="currentColor" /><path d="M12.5 6.5a3.5 3.5 0 010 5M14.5 4.5a6.4 6.4 0 010 9" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" /></svg>
@@ -124,6 +145,68 @@
   .skip {
     font-family: var(--font-sans);
     font-weight: 500;
+  }
+
+  // 시작 전 소리 묻기: 하늘 위에 뜨는 카드
+  .ask {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    display: grid;
+    place-items: center;
+    padding: var(--gutter);
+    background: rgba(43, 53, 102, 0.12);
+    animation: reveal 0.4s var(--ease-out) both;
+  }
+
+  .ask-card {
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    width: 100%;
+    max-width: 320px;
+    padding: 26px 22px 18px;
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.92);
+    color: #2b3566;
+    text-align: center;
+    box-shadow: 0 20px 50px -20px rgba(43, 53, 102, 0.45);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .ask-icon {
+    color: #ff5c7a;
+    margin-bottom: 4px;
+  }
+
+  .ask-title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  .ask-sub {
+    margin: 0 0 14px;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: rgba(43, 53, 102, 0.7);
+    text-wrap: balance;
+  }
+
+  .ask-actions {
+    display: grid;
+    gap: 4px;
+    width: 100%;
+  }
+
+  .ask-mute {
+    min-height: 44px;
+    border: 0;
+    background: none;
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(43, 53, 102, 0.7);
   }
 
   .result {
