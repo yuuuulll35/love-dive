@@ -22,21 +22,14 @@
 
   // 바닥에서 피어오르는 물방울 줄기 [x%, y%, 지름px]
   const BUBBLES: Record<Tier, readonly (readonly [number, number, number])[]> = {
-    light: [[60, 70, 9], [63, 52, 6], [59, 37, 5], [62, 24, 4], [88, 62, 6], [86, 44, 4], [89, 30, 3]],
-    soft: [[84, 74, 8], [86, 60, 6], [83, 48, 4], [85, 38, 3]],
-    deep: [[84, 66, 5], [82, 54, 3]],
+    light: [[56, 72, 9], [59, 54, 6], [55, 39, 5], [58, 26, 4], [68, 64, 5], [70, 46, 3]],
+    soft: [[60, 72, 7], [62, 56, 5], [59, 42, 4], [61, 30, 3]],
+    deep: [[62, 66, 5], [60, 52, 3]],
     abyss: [],
     void: [],
   };
 
-  // 수심 눈금: 0 ~ 최대 수심을 로그 스케일로 펼친 구간 띠
-  const MAX = 10935;
-  const pos = (d: number) => Math.min(1, Math.log1p(Math.max(0, d)) / Math.log1p(MAX));
-  const SEGMENTS = ZONES.map((z) => {
-    const to = Math.min(z.to, MAX);
-    return { id: z.id, grow: pos(to) - pos(z.from), color: rgb(waterColor((z.from + to) / 2)) };
-  });
-  const marker = $derived(pos(result.depth) * 100);
+
   // 심해의 발광 점
   const GLINTS = [[14, 30], [28, 66], [62, 18], [74, 58], [86, 36], [44, 74]] as const;
 
@@ -84,22 +77,21 @@
       </div>
     {/if}
 
+    <!-- 바다 층 눈금: 지금 도착한 층만 또렷하게 -->
+    {#if tier !== 'void'}
+      <ol class="ruler" aria-label="바다 층">
+        {#each ZONES as z (z.id)}
+          <li class:on={z.id === result.zone.id}>{z.name}</li>
+        {/each}
+      </ol>
+    {/if}
+
     <p class="logo">LOVE DIVE</p>
 
     {#if result.kind === 'void'}
       <p class="depth glitch">측정 불가</p>
     {:else}
-      <p class="depth">{formatDepth(result.depth)}<span class="unit">m</span></p>
-      <div class="gauge" style:--at="{marker}%">
-        <span class="pin">{result.zone.name}</span>
-        <div class="track" aria-hidden="true">
-          {#each SEGMENTS as seg (seg.id)}
-            <span class:on={seg.id === result.zone.id} style:flex-grow={seg.grow} style:background={seg.color}></span>
-          {/each}
-          <i class="mark"></i>
-        </div>
-        <div class="ends" aria-hidden="true"><span>0</span><span>10,935m</span></div>
-      </div>
+      <p class="depth" class:long={result.depth >= 1000}>{formatDepth(result.depth)}<span class="unit">m</span></p>
     {/if}
   </div>
 
@@ -222,7 +214,10 @@
   }
   .abyss .depth {
     letter-spacing: -0.01em;
-    font-size: clamp(62px, 20vw, 84px);
+  }
+  // 네 자리 이상은 오른쪽 층 눈금과 부딪히지 않게
+  .depth.long {
+    font-size: clamp(48px, 15vw, 64px);
   }
   .glitch {
     font-weight: 800;
@@ -291,71 +286,69 @@
     opacity: 0.35;
   }
 
-  // ───── 수심 눈금 ─────
-  .gauge {
-    position: relative;
-    margin-top: 12px;
-    max-width: 236px;
-    padding-top: 26px;
-  }
-  .pin {
+  // ───── 바다 층 눈금 ─────
+  .ruler {
     position: absolute;
-    top: 0;
-    left: clamp(0px, calc(var(--at) - 22px), calc(100% - 52px));
-    padding: 3px 9px;
-    border-radius: 999px;
-    background: var(--ink);
-    color: var(--bg);
-    font-size: 11.5px;
-    font-weight: 700;
-    line-height: 1.3;
-    white-space: nowrap;
-  }
-  .light .pin {
-    background: #1f2a44;
-    color: #fff;
-  }
-  .deep .pin,
-  .abyss .pin {
-    background: rgba(255, 255, 255, 0.92);
-    color: #0c1530;
-  }
-  .track {
-    position: relative;
+    top: 18px;
+    right: 16px;
+    bottom: 30px;
     display: flex;
-    gap: 2px;
-
-    span {
-      padding-top: 6px;
-      border-radius: 2px;
-      opacity: 0.55;
-      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
-    }
-    span.on {
-      opacity: 1;
-    }
-  }
-  .mark {
-    position: absolute;
-    top: 50%;
-    left: var(--at);
-    width: 14px;
-    aspect-ratio: 1;
-    border: 3px solid #fff;
-    border-radius: 50%;
-    background: var(--accent);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-    transform: translate(-50%, -50%);
-  }
-  .ends {
-    display: flex;
+    flex-direction: column;
     justify-content: space-between;
-    margin-top: 6px;
-    font-size: 10.5px;
+    align-items: flex-end;
+    margin: 0;
+    padding: 0 14px 0 0;
+    border-right: 1.5px solid rgba(255, 255, 255, 0.45);
+    list-style: none;
+    font-size: 11px;
     font-weight: 600;
-    font-variant-numeric: tabular-nums;
-    opacity: 0.6;
+    line-height: 1.5;
+
+    li {
+      position: relative;
+      opacity: 0.5;
+      white-space: nowrap;
+
+      // 눈금
+      &::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        right: -14px;
+        width: 6px;
+        border-top: 1.5px solid currentColor;
+      }
+    }
+    li.on {
+      padding: 2px 9px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.94);
+      color: #0c1530;
+      font-size: 12px;
+      font-weight: 700;
+      opacity: 1;
+      box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.35);
+
+      // 현재 위치 점
+      &::after {
+        right: -20px;
+        width: 11px;
+        aspect-ratio: 1;
+        border: 2.5px solid #fff;
+        border-radius: 50%;
+        background: var(--accent);
+        transform: translateY(-50%);
+      }
+    }
   }
+  .light .ruler {
+    border-color: rgba(31, 42, 68, 0.25);
+    li.on {
+      background: #1f2a44;
+      color: #fff;
+    }
+  }
+
 
   .wave {
     position: absolute;
@@ -396,15 +389,13 @@
 
   // ───── 페어 이미지 측심추 ─────
   .window.with-img {
-    .gauge {
-      max-width: calc(100% - 124px);
-    }
+    padding-bottom: 120px;
   }
   .hanger {
     position: absolute;
     z-index: -1;
     top: 0;
-    right: 22px;
+    right: 96px;
     bottom: 12px;
     display: flex;
     flex-direction: column;
