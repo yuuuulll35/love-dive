@@ -47,10 +47,23 @@ export function rawMax(): number {
   return (rawMaxCache = base + inter);
 }
 
-/** x → 수심. depth = MAX × (e^(k·x) − 1) / (e^k − 1) */
+/**
+ * x → 수심. 분포 보정 기준점 사이를 잇는다: 첫 구간은 직선, 나머지는 기하(지수) 보간이라
+ * 깊어질수록 같은 무게 차이가 더 큰 수심 차이가 된다. 기준점은 tools/abyss-tables.source.ts.
+ * (기획서 원식 MAX·(e^(k·x)−1)/(e^k−1) 은 분포가 점심해에 몰려 보정으로 대체)
+ */
 export function mapDepth(x: number): number {
-  const { coef } = getTables();
-  return (coef.maxDepth * (Math.exp(coef.k * x) - 1)) / (Math.exp(coef.k) - 1);
+  const pts = getTables().calibration;
+  const v = clamp(x, 0, 1);
+  for (let i = 1; i < pts.length; i++) {
+    const [x1, d1] = pts[i];
+    if (v <= x1) {
+      const [x0, d0] = pts[i - 1];
+      const t = (v - x0) / (x1 - x0);
+      return d0 <= 0 ? d1 * t : d0 * (d1 / d0) ** t;
+    }
+  }
+  return pts[pts.length - 1][1];
 }
 
 export function computeDepth(s: Scores): DepthBreakdown {

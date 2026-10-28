@@ -32,6 +32,7 @@ export function abyssTables(): Plugin {
         t: source.SLOT_TABLES,
         w: source.WEIGHTS,
         c: source.COEF,
+        q: source.CALIBRATION,
         n: source.NOISE_CHARSET,
         e: source.EXAMPLE_CODE,
       };

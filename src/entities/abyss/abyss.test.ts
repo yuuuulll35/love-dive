@@ -1,6 +1,7 @@
 import { getTables } from '$shared/config/tables';
 import { decodeCode, encodeScores, normalizeCode } from './codec';
-import { computeDepth, rawMax } from './depth';
+import { computeDepth, mapDepth, rawMax } from './depth';
+import { mulberry32 } from '$shared/lib/random';
 import { ARCHETYPES, matchArchetype } from './archetype';
 import { ZONES, VOID_ZONE } from './zones';
 import { TITLE_DESC } from '$shared/config/copy';
@@ -47,18 +48,60 @@ describe('#1 기준 벡터', () => {
       one: 4, lack: 7, clo: 6, sac: 5,
     });
   });
-  it('x ≈ 0.6855, depth ≈ 4,794m', () => {
+  it('x ≈ 0.6855 (기획서 검산값), 원식이면 4,794m', () => {
     const d = computeDepth(s);
     expect(d.x).toBeCloseTo(0.6855, 4);
-    expect(Math.round(d.depth)).toBe(4794);
+    // 기획서 원식 (k=2.2): 보정 전 값이 검산과 일치하는지
+    const raw = (10935 * (Math.exp(2.2 * d.x) - 1)) / (Math.exp(2.2) - 1);
+    expect(Math.round(raw)).toBe(4794);
   });
-  it('심해저 · 뜨거운 심해', () => {
+  it('분포 보정 후: 초심해 · 뜨거운 심해', () => {
     const r = measure(s);
     expect(r.kind).toBe('normal');
     expect(r.jitter).toBe(0);
-    expect(r.zone.id).toBe('abyss');
+    expect(Math.round(r.depth)).toBe(Math.round(mapDepth(computeDepth(s).x)));
+    expect(r.zone.id).toBe('hadal');
     expect(r.temperature.id).toBe('hot');
-    expect(r.atm).toBeCloseTo(4794 / 10 + 1, 0);
+    expect(r.atm).toBeCloseTo(r.depth / 10 + 1, 6);
+  });
+});
+
+describe('분포 보정', () => {
+  it('x 가 클수록 항상 더 깊다 (단조 증가)', () => {
+    let prev = -1;
+    for (let x = 0; x <= 1.0001; x += 0.005) {
+      const d = mapDepth(x);
+      expect(d).toBeGreaterThanOrEqual(prev);
+      prev = d;
+    }
+    expect(mapDepth(0)).toBe(0);
+    expect(mapDepth(1)).toBe(10935);
+  });
+
+  it('전부 4(근거 부족)는 얕은 표층', () => {
+    expect(measure(scores({})).zone.id).toBe('sunlight');
+  });
+
+  it('현실적인 페어 분포가 구간에 고루 퍼진다', () => {
+    const rand = mulberry32(7);
+    const gauss = () => Math.sqrt(-2 * Math.log(rand() || 1e-9)) * Math.cos(2 * Math.PI * rand());
+    const keys = ['ruin', 'tru', 'tmp', 'obs', 'tab', 'den', 'dep', 'irr', 'one', 'lack', 'clo', 'sac'] as const;
+    const h: Record<string, number> = {};
+    const N = 6000;
+    for (let i = 0; i < N; i++) {
+      const sc = {} as Scores;
+      for (const k of keys) sc[k] = Math.max(0, Math.min(9, Math.round(5.2 + 2 * gauss())));
+      const z = measure(sc).zone.id;
+      h[z] = (h[z] ?? 0) + 1;
+    }
+    const pct = (z: string) => ((h[z] ?? 0) / N) * 100;
+    // 목표: 부유 3 · 표층 17 · 박광층 30 · 점심해 30 · 심해저 14 · 초심해 6 (± 오차)
+    expect(pct('sunlight')).toBeGreaterThan(10);
+    expect(pct('twilight')).toBeGreaterThan(22);
+    expect(pct('midnight')).toBeGreaterThan(22);
+    expect(pct('midnight')).toBeLessThan(40);
+    expect(pct('abyss')).toBeGreaterThan(8);
+    expect(pct('hadal')).toBeGreaterThan(2);
   });
 });
 
@@ -79,11 +122,11 @@ describe('#2 스냅샷 벡터', () => {
       title: r.title,
     }).toMatchInlineSnapshot(`
       {
-        "depth": 427,
+        "depth": 2,
         "temp": "cold",
-        "title": "해무",
+        "title": "부표",
         "x": 0.1239,
-        "zone": "twilight",
+        "zone": "float",
       }
     `);
   });

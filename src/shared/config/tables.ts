@@ -18,6 +18,8 @@ export interface AbyssTables {
     interObsDep: number; interCloRuin: number; interLackSac: number;
     buoy: number; buoyClo: number; k: number; maxDepth: number;
   }>;
+  /** x → 수심 보정 기준점 [x, m] (오름차순) */
+  calibration: readonly (readonly [number, number])[];
   noiseCharset: string;
   exampleCode: string;
 }
@@ -42,13 +44,14 @@ let cache: AbyssTables | null = null;
 export function getTables(): AbyssTables {
   if (cache) return cache;
   const d = decodePayload(payload) as {
-    a: AxisKey[]; t: string[]; w: AbyssTables['weights']; c: AbyssTables['coef']; n: string; e: string;
+    a: AxisKey[]; t: string[]; w: AbyssTables['weights']; c: AbyssTables['coef']; q: [number, number][]; n: string; e: string;
   };
   cache = Object.freeze({
     slotAxes: Object.freeze(d.a),
     slotTables: Object.freeze(d.t),
     weights: Object.freeze(d.w),
     coef: Object.freeze(d.c),
+    calibration: Object.freeze(d.q),
     noiseCharset: d.n,
     exampleCode: d.e,
   });
