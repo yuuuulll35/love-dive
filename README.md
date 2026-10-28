@@ -76,3 +76,24 @@ XOR + 역순 base64로 인코딩해 `virtual:abyss-tables`로 넘긴다. 번들�
 - 더 무거운 페어가 항상 더 깊다(단조 증가, 테스트로 보장).
 - 전부 4점은 약 80m(표층), 기준 벡터 #1(x=0.6855)은 약 7,000m(초심해).
 - 분포를 바꾸고 싶으면 `CALIBRATION` 기준점만 고치면 된다.
+
+## 폰트·라이선스
+
+모든 웹폰트는 SIL Open Font License 1.1(OFL) 폰트를 npm 패키지로 받아 번들에 함께 넣는다.
+OFL은 웹 임베딩·재배포·상업적 이용을 허용하며, 폰트 파일 자체를 단독으로 판매하는 것만 금지한다.
+폰트 파일을 수정하지 않았고, 원래 폰트 이름 그대로 쓴다.
+
+| 폰트 | 쓰는 곳 | 저작권 | 라이선스 | 패키지 |
+|---|---|---|---|---|
+| [Pretendard](https://github.com/orioncactus/pretendard) | 본문·UI 전체 | © 2021 Kil Hyung-jin | OFL 1.1 | `pretendard` |
+| [Fredoka](https://github.com/hafontia/Fredoka-One) | LOVE DIVE 로고 | © 2016 The Fredoka Project Authors | OFL 1.1 | `@fontsource/fredoka` |
+| [Cormorant Garamond](https://github.com/CatharsisFonts/Cormorant) | 결과 카드 수심 숫자·카드 번호 | © 2015 The Cormorant Project Authors | OFL 1.1 | `@fontsource/cormorant-garamond` |
+| [Gowun Batang](https://github.com/yangheeryu/Gowun-Batang) | 결과 카드 칭호·문구, 해설 제목 | © 2021 The Gowun Batang Project Authors | OFL 1.1 | `@fontsource/gowun-batang` |
+| [IBM Plex Mono](https://github.com/IBM/plex) | 측정 코드·수심 HUD | © 2017 IBM Corp. | OFL 1.1 | `@fontsource/ibm-plex-mono` |
+
+각 폰트의 라이선스 전문은 `node_modules/<패키지>/LICENSE`에 있다.
+라이선스 원문: https://openfontlicense.org
+
+그 밖의 주요 라이브러리: [Svelte](https://github.com/sveltejs/svelte)(MIT),
+[html-to-image](https://github.com/bubkoo/html-to-image)(MIT). 그림(바다 생물·장식)은 전부 코드로 직접 그린 SVG·캔버스이며
+외부 이미지 에셋은 쓰지 않는다.
