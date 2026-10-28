@@ -129,6 +129,8 @@
             <img class="charm" src={image} alt="" />
           </div>
         {/if}
+        <!-- 물빛 베일: 이미지를 물속에 담가 글자보다 한 걸음 뒤로 -->
+        {#if image && tier !== 'void'}<span class="veil" class:float={result.kind === 'float'} aria-hidden="true"></span>{/if}
 
         {#if result.kind === 'void'}
           <p class="depth glitch">측정 불가</p>
@@ -155,10 +157,9 @@
       <p class="pair">{result.pair}</p>
     {/if}
 
-    <!-- 절취선 아래 풀이는 이미지 저장에서 빠진다 -->
-    <div class="tear" aria-hidden="true" data-no-capture></div>
+    <div class="tear" aria-hidden="true"></div>
 
-    <div class="reading" data-no-capture>
+    <div class="reading">
       {#if result.tags.length}
         <ul class="tags" aria-label="두드러진 축">
           {#each result.tags as tag (tag)}<li>#{tag}</li>{/each}
@@ -323,9 +324,15 @@
     color: #fff;
     text-align: center;
 
+    // 페어 이미지가 있으면 글자는 창 위쪽, 이미지는 아래쪽에 두어 겹치지 않게 (cqh = 창 높이 %)
     &.with-img {
+      container-type: size;
       align-content: start;
-      padding-top: 26%;
+      padding-top: 9cqh;
+
+      .depth {
+        font-size: 19cqh;
+      }
     }
   }
   .light .arch {
@@ -519,26 +526,57 @@
     width: 120px;
     transform: translateX(-50%);
 
+    // 부유: 수면(창 높이 67%)에 반쯤 잠기게
     &.floating {
-      bottom: 30%;
+      bottom: 20%;
     }
   }
+  // 줄은 글자 뒤로 지나가므로 은은하게. 어두운 바다일수록 더 흐리게
   .thread {
     flex: 1;
     width: 1.5px;
     background: var(--rope);
     box-shadow: 0 0 0 0.5px var(--rope-edge);
+    opacity: 0.7;
   }
+  .soft .thread {
+    opacity: 0.45;
+  }
+  .deep .thread,
+  .abyss .thread {
+    width: 1px;
+    box-shadow: none;
+    opacity: 0.22;
+  }
+  // 깊을수록 색이 빠지고 어두워지고 살짝 흐려진다
   .charm {
     display: block;
     max-width: 120px;
-    max-height: 120px;
+    max-height: 30cqh;
     object-fit: contain;
-    filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.3));
+    filter: saturate(0.92) blur(0.3px) drop-shadow(0 6px 10px rgba(0, 0, 0, 0.25));
   }
-  .deep .charm,
+  .soft .charm {
+    filter: saturate(0.7) brightness(0.88) blur(0.5px) drop-shadow(0 4px 10px rgba(0, 20, 50, 0.35));
+  }
+  .deep .charm {
+    filter: saturate(0.55) brightness(0.82) blur(0.5px) drop-shadow(0 0 12px rgba(143, 180, 255, 0.25));
+  }
   .abyss .charm {
-    filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.6)) drop-shadow(0 0 14px rgba(255, 255, 255, 0.18));
+    filter: saturate(0.4) brightness(0.72) blur(0.6px) drop-shadow(0 0 14px rgba(127, 246, 228, 0.15));
+  }
+
+  .veil {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(to bottom, transparent 35%, color-mix(in srgb, var(--bottom) 40%, transparent));
+  }
+  // 부유: 수면 아래로 잠긴 부분만 물빛으로 덮는다
+  .veil.float {
+    inset: 67% 0 0;
+    background: linear-gradient(to bottom, rgba(99, 208, 219, 0.7), rgba(63, 183, 201, 0.55));
   }
 
   .plate {
