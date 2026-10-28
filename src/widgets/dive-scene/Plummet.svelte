@@ -15,28 +15,27 @@
   <svg viewBox="0 0 44 54" width={size} height={size * (54 / 44)}>
     <defs>
       <linearGradient id="lead-{uid}" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#8a95a6" />
-        <stop offset="0.45" stop-color="#4b5566" />
-        <stop offset="1" stop-color="#1c222e" />
+        <stop offset="0" stop-color="#ff9db1" />
+        <stop offset="0.5" stop-color="#ff5c7a" />
+        <stop offset="1" stop-color="#d83a60" />
       </linearGradient>
       <radialGradient id="shine-{uid}" cx="0.32" cy="0.38" r="0.35">
         <stop offset="0" stop-color="#fff" stop-opacity="0.55" />
         <stop offset="1" stop-color="#fff" stop-opacity="0" />
       </radialGradient>
     </defs>
-    <circle cx="22" cy="6" r="4" fill="none" stroke="#6f7a8c" stroke-width="2" />
+    <circle cx="22" cy="6" r="4" fill="none" stroke="#c9d1dc" stroke-width="2" />
     <path
       d="M22 50C11 43 3 35.5 3 26.5 3 19.6 8.3 14.5 14.6 14.5c3.4 0 6 1.6 7.4 4 1.4-2.4 4-4 7.4-4C35.7 14.5 41 19.6 41 26.5 41 35.5 33 43 22 50z"
       fill="url(#lead-{uid})"
-      stroke="#0b0f17"
+      stroke="#b8264d"
       stroke-width="1"
     />
     <path
       d="M22 50C11 43 3 35.5 3 26.5 3 19.6 8.3 14.5 14.6 14.5c3.4 0 6 1.6 7.4 4 1.4-2.4 4-4 7.4-4C35.7 14.5 41 19.6 41 26.5 41 35.5 33 43 22 50z"
       fill="url(#shine-{uid})"
     />
-    <path d="M22 18.6v29" stroke="#0b0f17" stroke-opacity="0.35" stroke-width="0.8" />
-  </svg>
+      </svg>
 </div>
 
 <style lang="scss">

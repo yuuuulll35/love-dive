@@ -208,6 +208,10 @@ describe('칭호', () => {
     expect(r.archetypeId).toBeNull();
     expect(r.title).toBe(r.zone.defaultTitle);
   });
+  it('해시태그는 5점 이상 상위 축 최대 3개', () => {
+    expect(measure(scores({ obs: 9, ruin: 8, dep: 7, clo: 6 })).tags).toEqual(['집착', '파멸성', '의존']);
+    expect(measure(scores({})).tags).toEqual([]);
+  });
   it('같은 입력은 같은 해설', () => {
     const s = decoded('ABYSS-QPEX-ZGT2-W47S-AA');
     expect(measure(s, 'A×B').lines).toEqual(measure(s, 'b x a').lines);

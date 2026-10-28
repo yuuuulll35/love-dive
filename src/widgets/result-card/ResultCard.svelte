@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ZONES, waterColor, type MeasureResult } from '$entities/abyss';
+  import { waterColor, type MeasureResult } from '$entities/abyss';
   import { formatAtm, formatDepth } from '$shared/lib/format';
 
   interface Props {
@@ -11,369 +11,387 @@
   }
   let { result, image = null, node = $bindable() }: Props = $props();
 
-  const MAX = 10935;
-  const pos = (d: number) => Math.log1p(Math.max(0, d)) / Math.log1p(MAX);
-  const bands = ZONES.slice(1).map((z) => ({ id: z.id, name: z.name, from: pos(z.from), to: pos(Math.min(z.to, MAX)) }));
-
-  const labels = [
-    { d: 0, text: '0' }, { d: 200, text: '200' }, { d: 1000, text: '1K' }, { d: MAX, text: '10,935m' },
-  ];
-
-  const tone = $derived(waterColor(Math.min(result.depth, 3000) * 0.4).join(','));
   const isVoid = $derived(result.kind === 'void');
   const isFloat = $derived(result.kind === 'float');
+  const rgb = (c: number[]) => `rgb(${c.join(',')})`;
+  // 창 배경: 그 수심의 물빛. 위는 조금 밝게
+  const waterTop = $derived(rgb(waterColor(result.depth * 0.25)));
+  const waterBottom = $derived(rgb(waterColor(result.depth)));
+  const first = $derived(result.lines[0]);
+  const rest = $derived(result.lines.slice(1));
+
+  // 장식 기포 (x%, y%, 크기px)
+  const bubbles = [
+    [12, 70, 10], [20, 52, 6], [9, 38, 4], [70, 24, 7], [80, 46, 5], [62, 62, 4],
+  ] as const;
+
+  // 이미지 저장 시 height 는 복사되지 않으므로, 이 카드는 높이를 inset·aspect-ratio·padding 으로만 잡는다
 </script>
 
 <article
-  class="card {result.temperature.id}"
+  class="card t-{result.temperature.id}"
   class:void={isVoid}
   class:float={isFloat}
-  style:--tone={tone}
   bind:this={node}
   aria-label="측정 결과"
 >
-  <header class="top mono">
-    <span class="brand">LOVE DIVE</span>
-    <span>SOUNDING LOG</span>
-  </header>
+  <!-- ───── 물속 창 ───── -->
+  <div class="window" style:--top={waterTop} style:--bottom={waterBottom}>
+    {#if isFloat}
+      <svg class="wave" viewBox="0 0 400 24" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0 10 Q25 2 50 10 T100 10 T150 10 T200 10 T250 10 T300 10 T350 10 T400 10 V24 H0Z" />
+      </svg>
+    {:else if !isVoid}
+      {#each bubbles as [x, y, s], i (i)}
+        <span class="bubble" style:left="{x}%" style:top="{y}%" style:width="{s}px" aria-hidden="true"></span>
+      {/each}
+      <svg class="bed" viewBox="0 0 400 44" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0 22C60 8 110 26 180 18S300 4 400 20V44H0z" />
+      </svg>
+    {/if}
+    {#if result.temperature.id === 'hot' && !isVoid && !isFloat}<span class="vent" aria-hidden="true"></span>{/if}
 
-  {#if image}
-    <div class="pair-row">
-      <img class="portrait" src={image} alt={result.pair ? `${result.pair} 이미지` : '페어 이미지'} />
-      {#if result.pair}<p class="pair serif">{result.pair}</p>{/if}
+    <span class="thread" aria-hidden="true"></span>
+    <svg class="heart" viewBox="0 0 44 40" aria-hidden="true">
+      <circle cx="22" cy="4" r="3" fill="none" stroke="#c9d1dc" stroke-width="1.6" />
+      <path d="M22 38C11 31 3 24 3 15.5 3 9.6 7.7 5 13.4 5c3.6 0 6.8 1.8 8.6 4.6C23.8 6.8 27 5 30.6 5 36.3 5 41 9.6 41 15.5 41 24 33 31 22 38z" />
+      <ellipse cx="13.5" cy="13" rx="4" ry="3" fill="#fff" opacity="0.55" />
+    </svg>
+
+    <div class="pills">
+      <span class="pill">{result.zone.name}</span>
+      <span class="pill temp">{result.temperature.label}</span>
     </div>
-  {:else if result.pair}
-    <p class="pair serif">{result.pair}</p>
-  {/if}
 
-  <div class="depth">
     {#if isVoid}
-      <p class="value mono glitch" data-text="ERR">측정 불가</p>
-      <p class="sub mono">&gt; {formatDepth(MAX)} m · &gt; {formatAtm(MAX)} atm</p>
+      <p class="depth glitch">측정 불가</p>
+      <p class="atm">10,935m 아래 · 장비 응답 없음</p>
     {:else}
-      <p class="value mono">{formatDepth(result.depth)}<span class="unit">m</span></p>
-      <p class="sub mono">{formatAtm(result.depth)} atm · {result.zone.name} <span class="latin">{result.zone.latin}</span></p>
+      <p class="depth">{formatDepth(result.depth)}<span class="unit">m</span></p>
+      <p class="atm">수압 {formatAtm(result.depth)} atm</p>
     {/if}
   </div>
 
-  <!-- 수심 프로필 바 -->
-  <div class="profile" aria-hidden="true">
-    {#each bands as b (b.id)}
-      <span class="band {b.id}" style:left="{b.from * 100}%" style:width="{(b.to - b.from) * 100}%"></span>
-    {/each}
-    <span class="marker" style:left="{Math.min(1, pos(result.depth)) * 100}%"></span>
-  </div>
-  <div class="profile-labels mono" aria-hidden="true">
-    {#each labels as l (l.d)}
-      <span style:left="{pos(l.d) * 100}%">{l.text}</span>
-    {/each}
-  </div>
+  <!-- ───── 본문 ───── -->
+  <div class="body">
+    {#if image || result.pair}
+      <div class="pair">
+        {#if image}<img src={image} alt={result.pair ? `${result.pair} 이미지` : '페어 이미지'} />{/if}
+        {#if result.pair}<span>{result.pair}</span>{/if}
+      </div>
+    {/if}
 
-  <div class="title">
-    <p class="label mono">칭호</p>
-    <h2 class="serif">{result.title}</h2>
-    <p class="temp"><span class="swatch"></span>{result.temperature.label} · {result.temperature.tone}</p>
-  </div>
+    <h2 class="title">{result.title}</h2>
+    <p class="quote">{first}</p>
 
-  <div class="lines serif">
-    {#each result.lines as line, i (i)}
-      <p>{line}</p>
-    {/each}
-  </div>
+    {#if result.tags.length}
+      <ul class="tags" aria-label="두드러진 축">
+        {#each result.tags as tag (tag)}<li>#{tag}</li>{/each}
+      </ul>
+    {/if}
 
-  <footer class="foot mono">
-    <span>12-AXIS PAIR SOUNDING</span>
-    <span>♥ ─── {isVoid ? '∞' : formatDepth(result.depth) + 'm'}</span>
-  </footer>
+    <div class="lines">
+      {#each rest as line, i (i)}<p>{line}</p>{/each}
+    </div>
+
+    <p class="brand" aria-hidden="true">
+      L<svg viewBox="0 0 20 18"><path d="M10 17C5 13.6 1 10.2 1 6.2 1 3.3 3.2 1 6 1c1.7 0 3.1.8 4 2.1C10.9 1.8 12.3 1 14 1c2.8 0 5 2.3 5 5.2 0 4-4 7.4-9 10.8z" /></svg>VE DIVE
+    </p>
+  </div>
 </article>
 
 <style lang="scss">
   .card {
-    --fg: #eef5f8;
-    --fg-dim: rgba(238, 245, 248, 0.66);
-    --fg-faint: rgba(238, 245, 248, 0.36);
-    --rule: rgba(238, 245, 248, 0.14);
-    --accent: var(--biolume);
+    --paper: #fffdf9;
+    --ink: #24304a;
+    --ink-2: #5b6680;
+    --ink-3: #9aa3b5;
+    --rule: #eee7de;
+    --accent: #3d7bf2;
+    --accent-soft: #e8f0ff;
 
-    position: relative;
-    display: grid;
-    gap: 18px;
     width: 100%;
-    max-width: 400px;
+    max-width: 380px;
     margin: 0 auto;
-    padding: 22px 22px 18px;
-    border-radius: 22px;
     overflow: hidden;
-    color: var(--fg);
-    background:
-      radial-gradient(120% 60% at 85% -10%, rgba(var(--tone), 0.9), transparent 60%),
-      linear-gradient(170deg, #0b1c36 0%, #050b18 55%, #020409 100%);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 28px;
+    background: var(--paper);
+    color: var(--ink);
     box-shadow:
-      0 30px 80px -20px rgba(0, 0, 0, 0.7),
-      inset 0 1px 0 rgba(255, 255, 255, 0.08);
-
-    // 종이 결 노이즈 대신 아주 옅은 스캔라인
-    &::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: repeating-linear-gradient(to bottom, rgba(255, 255, 255, 0.018) 0 1px, transparent 1px 4px);
-      pointer-events: none;
-    }
-
-    > * {
-      position: relative;
-    }
+      0 0 0 5px rgba(255, 255, 255, 0.14),
+      0 30px 70px -24px rgba(0, 0, 0, 0.65);
   }
 
-  .lukewarm {
-    --accent: #b9c7d4;
-    background:
-      radial-gradient(120% 60% at 85% -10%, rgba(var(--tone), 0.7), transparent 60%),
-      linear-gradient(170deg, #1b2633 0%, #0b1017 60%, #050709 100%);
+  .t-lukewarm {
+    --accent: #6a7896;
+    --accent-soft: #edf0f5;
   }
-
-  .hot {
-    --accent: #ff7a59;
-    background:
-      radial-gradient(120% 50% at 85% -10%, rgba(var(--tone), 0.6), transparent 60%),
-      radial-gradient(90% 45% at 60% 110%, rgba(255, 80, 50, 0.45), transparent 70%),
-      linear-gradient(170deg, #12101c 0%, #0a0509 60%, #060203 100%);
+  .t-hot {
+    --accent: #f0436a;
+    --accent-soft: #ffebf0;
   }
-
-  .float {
-    --fg: var(--sky-ink);
-    --fg-dim: rgba(15, 43, 59, 0.7);
-    --fg-faint: rgba(15, 43, 59, 0.42);
-    --rule: rgba(15, 43, 59, 0.14);
-    --accent: #0d7f99;
-    background:
-      radial-gradient(120% 60% at 80% -10%, rgba(255, 246, 232, 1), transparent 60%),
-      radial-gradient(140% 40% at 50% 112%, rgba(64, 196, 206, 0.55), transparent 70%),
-      linear-gradient(180deg, #f6eee8 0%, #e3ecef 55%, #c5e6ec 100%);
-    border-color: rgba(15, 43, 59, 0.12);
-
-    &::before {
-      display: none;
-    }
-  }
-
   .void {
     --accent: #ff4d6d;
+    --accent-soft: #ffe9ee;
+  }
+
+  // ───── 물속 창 ─────
+  .window {
+    position: relative;
+    overflow: hidden;
+    padding: 18px 20px 78px;
+    background: linear-gradient(to bottom, var(--top), var(--bottom));
+    color: #fff;
+    isolation: isolate;
+  }
+
+  .float .window {
+    color: var(--ink);
+    background: linear-gradient(to bottom, #ffd9e3 0%, #ffe9dc 45%, #cfeefa 70%, #5fcfda 71%, #3fb7c9 100%);
+  }
+
+  .void .window {
     background:
-      repeating-linear-gradient(to bottom, rgba(255, 77, 109, 0.05) 0 1px, transparent 1px 3px),
-      linear-gradient(180deg, #050505, #000);
-    border-color: rgba(255, 77, 109, 0.25);
+      repeating-linear-gradient(to bottom, rgba(255, 77, 109, 0.08) 0 1px, transparent 1px 3px),
+      #050407;
   }
 
-  .top {
-    display: flex;
-    justify-content: space-between;
-    font-size: 10px;
-    letter-spacing: 0.18em;
-    color: var(--fg-faint);
-
-    .brand {
-      color: var(--thread);
-      font-weight: 500;
-    }
-  }
-
-  .pair {
-    margin: -6px 0 -10px;
-    font-size: 16px;
-    color: var(--fg-dim);
-  }
-
-  .pair-row {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin: -4px 0 -6px;
-
-    .pair {
-      margin: 0;
-      min-width: 0;
-      font-size: 17px;
-      color: var(--fg);
-    }
-  }
-
-  .portrait {
-    flex: none;
-    width: 76px;
-    // 이미지 저장 시 height 가 복사되지 않으므로 비율로 크기를 고정
+  .bubble {
+    position: absolute;
+    z-index: -1;
     aspect-ratio: 1;
-    border-radius: 18px;
-    object-fit: cover;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    box-shadow:
-      0 0 0 3px rgba(255, 77, 109, 0.18),
-      0 10px 24px -10px rgba(0, 0, 0, 0.6);
+    border-radius: 50%;
+    border: 1.5px solid rgba(255, 255, 255, 0.55);
+    background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.6), transparent 60%);
+  }
+
+  .bed {
+    position: absolute;
+    z-index: -1;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    aspect-ratio: 400 / 44;
+    fill: rgba(255, 255, 255, 0.12);
+  }
+
+  .wave {
+    position: absolute;
+    z-index: -1;
+    left: 0;
+    right: 0;
+    top: 66%;
+    width: 100%;
+    aspect-ratio: 400 / 24;
+    fill: #5fcfda;
+  }
+
+  .vent {
+    position: absolute;
+    z-index: -1;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: 40%;
+    background: radial-gradient(ellipse 70% 60% at 70% 110%, rgba(255, 95, 60, 0.75), transparent 70%);
+  }
+
+  .thread {
+    position: absolute;
+    z-index: -1;
+    top: 0;
+    right: 51px;
+    bottom: 46px;
+    width: 2px;
+    background: #ff4d6d;
+    box-shadow: 0 0 8px rgba(255, 77, 109, 0.7);
+  }
+
+  .heart {
+    position: absolute;
+    right: 30px;
+    bottom: 14px;
+    width: 44px;
+    aspect-ratio: 44 / 40;
+    fill: #ff5c7a;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+  }
+
+  .float .thread {
+    bottom: 58px;
+  }
+  .float .heart {
+    bottom: 30px;
+  }
+  .void .thread {
+    bottom: 0;
+    opacity: 0.6;
+  }
+  .void .heart {
+    display: none;
+  }
+
+  .pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .pill {
+    padding: 5px 11px 4px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    font-family: var(--font-display);
+    font-size: 13px;
+    line-height: 1.2;
+    color: #fff;
+  }
+  .pill.temp {
+    background: var(--accent-soft);
+    border-color: transparent;
+    color: var(--accent);
+  }
+  .float .pill:not(.temp) {
+    background: rgba(255, 255, 255, 0.75);
+    color: var(--ink);
   }
 
   .depth {
-    .value {
-      margin: 0;
-      font-size: clamp(56px, 18vw, 76px);
-      font-weight: 500;
-      line-height: 1;
-      letter-spacing: -0.03em;
+    margin: 14px 0 0;
+    font-family: var(--font-num);
+    font-weight: 700;
+    font-size: clamp(56px, 18vw, 74px);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    text-shadow: 0 3px 16px rgba(0, 0, 0, 0.25);
 
-      .unit {
-        margin-left: 6px;
-        font-size: 0.34em;
-        font-weight: 400;
-        letter-spacing: 0;
-        color: var(--fg-dim);
-      }
+    .unit {
+      margin-left: 4px;
+      font-size: 0.42em;
+      font-weight: 600;
+      opacity: 0.85;
     }
-    .sub {
-      margin: 10px 0 0;
-      font-size: 12px;
-      color: var(--fg-dim);
-
-      .latin {
-        font-size: 10px;
-        letter-spacing: 0.14em;
-        color: var(--fg-faint);
-      }
-    }
+  }
+  .float .depth {
+    text-shadow: none;
   }
 
   .glitch {
-    font-family: var(--font-sans) !important;
-    font-size: clamp(44px, 13vw, 58px) !important;
-    font-weight: 600 !important;
-    color: #fff;
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(44px, 13vw, 54px);
     text-shadow:
-      -3px 0 rgba(255, 42, 85, 0.85),
-      3px 0 rgba(42, 255, 234, 0.6);
+      -3px 0 rgba(255, 42, 85, 0.9),
+      3px 0 rgba(42, 255, 234, 0.7);
   }
 
-  .profile {
-    position: relative;
-    padding-top: 6px;
-    border-radius: 3px;
-    background: var(--rule);
-    margin-top: 2px;
-
-    .band {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      opacity: 0.85;
-      &:first-child {
-        border-radius: 3px 0 0 3px;
-      }
-      &:last-of-type {
-        border-radius: 0 3px 3px 0;
-      }
-      &.sunlight { background: #40c4ce; }
-      &.twilight { background: #1c6aa8; }
-      &.midnight { background: #24357a; }
-      &.abyss { background: #3a2b62; }
-      &.hadal { background: #5a2147; }
-    }
-
-    .marker {
-      position: absolute;
-      top: 50%;
-      width: 12px;
-      padding-top: 12px;
-      transform: translate(-50%, -50%) rotate(45deg);
-      background: var(--thread);
-      box-shadow: 0 0 0 3px rgba(255, 77, 109, 0.25), 0 0 12px rgba(255, 77, 109, 0.7);
-    }
+  .atm {
+    margin: 8px 0 0;
+    font-size: 13px;
+    opacity: 0.8;
   }
 
-  .profile-labels {
-    position: relative;
-    padding-top: 12px;
-    margin-top: -12px;
-    font-size: 9px;
-    color: var(--fg-faint);
+  // ───── 본문 ─────
+  .body {
+    display: grid;
+    gap: 10px;
+    padding: 20px 22px 16px;
+  }
 
+  .pair {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 2px;
+
+    img {
+      flex: none;
+      width: 52px;
+      aspect-ratio: 1;
+      border-radius: 16px;
+      object-fit: cover;
+      border: 3px solid #fff;
+      box-shadow: 0 0 0 1.5px var(--rule), 0 6px 14px -6px rgba(36, 48, 74, 0.35);
+    }
     span {
-      position: absolute;
-      top: 0;
-      white-space: nowrap;
-      transform: translateX(-50%);
-      &:first-child {
-        transform: none;
-      }
-      &:last-child {
-        transform: translateX(-100%);
-      }
+      min-width: 0;
+      font-family: var(--font-display);
+      font-size: 17px;
+      color: var(--ink-2);
     }
   }
 
   .title {
-    padding-top: 16px;
-    border-top: 1px solid var(--rule);
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 36px;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+  }
 
-    .label {
-      margin: 0 0 4px;
-      font-size: 10px;
-      letter-spacing: 0.2em;
-      color: var(--fg-faint);
-    }
-    h2 {
-      margin: 0;
-      font-size: 32px;
-      font-weight: 700;
-      line-height: 1.25;
-      letter-spacing: -0.01em;
-    }
-    .temp {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin: 10px 0 0;
-      font-size: 13px;
-      color: var(--fg-dim);
-    }
-    // 이미지 저장 시 height 는 복사되지 않으므로 빈 요소는 padding 으로 크기를 잡는다
-    .swatch {
-      flex: none;
-      width: 10px;
-      padding-top: 10px;
-      border-radius: 50%;
-      background: var(--accent);
-      box-shadow: 0 0 10px var(--accent);
+  .quote {
+    margin: 0;
+    font-family: var(--font-soft);
+    font-size: 15.5px;
+    line-height: 1.6;
+    color: var(--accent);
+    text-wrap: balance;
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 4px 0 2px;
+    padding: 0;
+    list-style: none;
+
+    li {
+      padding: 5px 11px 4px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-family: var(--font-display);
+      font-size: 13.5px;
+      line-height: 1.2;
     }
   }
 
   .lines {
     display: grid;
-    gap: 6px;
+    gap: 4px;
+    padding-top: 12px;
+    border-top: 1.5px dashed var(--rule);
 
     p {
       margin: 0;
-      font-size: 15px;
+      font-family: var(--font-soft);
+      font-size: 14.5px;
       line-height: 1.7;
-      // 라이브 화면과 이미지 저장 결과의 줄바꿈이 어긋나지 않도록 여유 있게 균형 배분
+      color: var(--ink-2);
       text-wrap: balance;
-      color: var(--fg);
-
-      &:first-child {
-        color: var(--accent);
-      }
-      &:not(:first-child) {
-        color: var(--fg-dim);
-      }
     }
   }
 
-  .foot {
+  .brand {
     display: flex;
-    justify-content: space-between;
-    padding-top: 12px;
-    border-top: 1px dashed var(--rule);
-    font-size: 10px;
-    letter-spacing: 0.14em;
-    color: var(--fg-faint);
+    align-items: center;
+    justify-content: center;
+    margin: 6px 0 0;
+    font-family: var(--font-num);
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    color: var(--ink-3);
+
+    svg {
+      width: 11px;
+      aspect-ratio: 20 / 18;
+      margin: 0 1px;
+      fill: #ff5c7a;
+    }
   }
 </style>

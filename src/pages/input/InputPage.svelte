@@ -2,7 +2,8 @@
   import { tick } from 'svelte';
   import { router } from '$app/router.svelte';
   import { decodeInput } from '$features/decode-code/decode';
-  import { diveHash } from '$features/share-result/token';
+  import { diveHash, encodeToken } from '$features/share-result/token';
+  import { pairImage } from '$features/pair-image/store.svelte';
   import PromptPanel from '$features/ooc-prompt/PromptPanel.svelte';
   import SelfTest from '$features/self-test/SelfTest.svelte';
   import ImagePicker from '$features/pair-image/ImagePicker.svelte';
@@ -32,6 +33,7 @@
       return;
     }
     error = null;
+    pairImage.attach(encodeToken(r.code, r.pair));
     router.go(diveHash(r.code, r.pair));
   }
 
@@ -62,17 +64,29 @@
   <!-- ───────── 하늘 · 수면 ───────── -->
   <section class="hero" aria-labelledby="site-title">
     <div class="sky">
-      <div class="sun" aria-hidden="true"></div>
-      <div class="brand">
-        <p class="eyebrow mono">PAIR WEIGHT · DEPTH SOUNDER</p>
-        <h1 id="site-title">
-          <span class="en">LOVE DIVE</span>
-          <span class="ko">러브 다이브</span>
-        </h1>
-        <p class="tagline serif">둘의 관계는, 몇 미터까지 가라앉을까.</p>
-      </div>
+      <span class="cloud c1" aria-hidden="true"></span>
+      <span class="cloud c2" aria-hidden="true"></span>
+      <span class="cloud c3" aria-hidden="true"></span>
+
+      <h1 id="site-title" class="logo" aria-label="LOVE DIVE">
+        <span aria-hidden="true"
+          >L<svg class="o" viewBox="0 0 44 40"
+            ><path d="M22 38C11 31 3 24 3 15.5 3 9.6 7.7 5 13.4 5c3.6 0 6.8 1.8 8.6 4.6C23.8 6.8 27 5 30.6 5 36.3 5 41 9.6 41 15.5 41 24 33 31 22 38z" /><ellipse
+              cx="13.5"
+              cy="13"
+              rx="4"
+              ry="3"
+              fill="#fff"
+              opacity="0.6"
+            /></svg
+          >VE</span
+        >
+        <span aria-hidden="true">DIVE</span>
+      </h1>
+      <p class="tagline">우리 관계, 몇 m까지 가라앉을까?</p>
+
       <div class="hang" aria-hidden="true">
-        <Plummet size={38} thread={900} />
+        <Plummet size={34} thread={900} />
       </div>
     </div>
 
@@ -81,10 +95,10 @@
     </div>
 
     <div class="shallow">
-      <p class="lede">
-        두 사람의 관계를 <strong>12개의 축</strong>으로 재고,<br />
-        그 무게만큼 바다에 가라앉힙니다.
-      </p>
+      <span class="rise r1" aria-hidden="true"></span>
+      <span class="rise r2" aria-hidden="true"></span>
+      <span class="rise r3" aria-hidden="true"></span>
+      <p class="lede">두 사람의 관계를 12개의 축으로 재서<br />그 무게만큼 바다에 가라앉혀요.</p>
       <a
         class="jump"
         href="#get-code"
@@ -93,8 +107,8 @@
           document.getElementById('get-code')?.scrollIntoView({ behavior: 'smooth' });
         }}
       >
-        측정하러 내려가기
-        <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 2v10M3 8l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        측정하러 가기
+        <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 2v10M3 8l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
       </a>
     </div>
   </section>
@@ -221,79 +235,106 @@
   // ───────── 히어로 ─────────
   .hero {
     position: relative;
-    min-height: max(560px, 100svh);
     display: grid;
-    grid-template-rows: 1fr auto auto;
     overflow: hidden;
   }
 
   .sky {
     position: relative;
     display: grid;
-    align-content: center;
     justify-items: center;
-    padding: 72px var(--gutter) 56px;
-    background: linear-gradient(to bottom, var(--sky-top), var(--sky-mid) 55%, var(--sky-bottom));
-    color: var(--sky-ink);
+    gap: 14px;
+    padding: 96px var(--gutter) 84px;
+    background: linear-gradient(to bottom, #ffd3df 0%, #ffe6da 48%, #d6f0fb 100%);
+    color: #2b3566;
     text-align: center;
   }
 
-  .sun {
+  // 뭉게구름: 원 세 개를 겹친 덩어리
+  .cloud {
     position: absolute;
-    left: 50%;
-    bottom: -60px;
-    width: 260px;
-    height: 260px;
-    transform: translateX(-50%);
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(255, 245, 230, 0.95), rgba(255, 214, 196, 0.35) 45%, transparent 70%);
-    pointer-events: none;
+    width: 92px;
+    height: 30px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.85);
+    animation: drift 18s ease-in-out infinite alternate;
+
+    &::before,
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 8px;
+      border-radius: 50%;
+      background: inherit;
+    }
+    &::before {
+      left: 14px;
+      width: 38px;
+      height: 38px;
+    }
+    &::after {
+      left: 40px;
+      width: 30px;
+      height: 30px;
+    }
+  }
+  .c1 {
+    top: 46px;
+    left: 8%;
+  }
+  .c2 {
+    top: 120px;
+    right: 6%;
+    transform: scale(0.75);
+    animation-duration: 22s;
+    animation-direction: alternate-reverse;
+  }
+  .c3 {
+    bottom: 26px;
+    left: 4%;
+    transform: scale(0.55);
+    opacity: 0.8;
+    animation-duration: 26s;
   }
 
-  .brand {
+  .logo {
     position: relative;
-    z-index: 1;
-  }
-
-  .eyebrow {
-    margin: 0 0 12px;
-    font-size: 10.5px;
-    letter-spacing: 0.24em;
-    color: var(--sky-ink-dim);
-  }
-
-  h1 {
     margin: 0;
     display: grid;
-    gap: 4px;
+    font-family: var(--font-num);
+    font-weight: 700;
+    font-size: clamp(64px, 21vw, 112px);
+    line-height: 0.88;
+    letter-spacing: -0.01em;
+    color: #2b3566;
+    // 스티커처럼 살짝 밀린 분홍 그림자
+    text-shadow: 4px 4px 0 #ffb3c6;
 
-    .en {
-      font-family: var(--font-serif);
-      font-weight: 700;
-      font-size: clamp(46px, 15vw, 84px);
-      line-height: 0.95;
-      letter-spacing: 0.02em;
-    }
-    .ko {
-      font-family: var(--font-sans);
-      font-size: 13px;
-      font-weight: 500;
-      letter-spacing: 0.5em;
-      margin-right: -0.5em;
-      color: var(--sky-ink-dim);
+    .o {
+      display: inline-block;
+      width: 0.74em;
+      aspect-ratio: 44 / 40;
+      margin: 0 0.02em;
+      vertical-align: -0.06em;
+      fill: #ff5c7a;
+      filter: drop-shadow(4px 4px 0 #ffb3c6);
+      animation: beat 2.4s ease-in-out infinite;
+      transform-origin: 50% 60%;
     }
   }
 
   .tagline {
-    margin: 18px 0 0;
-    font-size: 16px;
-    color: var(--sky-ink);
+    position: relative;
+    margin: 6px 0 0;
+    font-family: var(--font-display);
+    font-size: clamp(18px, 5.2vw, 22px);
+    color: #2b3566;
   }
 
   .hang {
     position: absolute;
     right: max(22px, calc(50% - 230px));
-    bottom: 34px;
+    bottom: 30px;
     transform-origin: 50% -900px;
     animation: pendulum 5.5s ease-in-out infinite alternate;
   }
@@ -306,46 +347,73 @@
   }
 
   .shallow {
+    position: relative;
     display: grid;
-    align-content: start;
     justify-items: center;
-    gap: 22px;
-    padding: 22px var(--gutter) 44px;
+    gap: 20px;
+    padding: 20px var(--gutter) 48px;
     background: linear-gradient(to bottom, var(--sea-surface), var(--sea-shallow));
     text-align: center;
     color: #fff;
+    overflow: hidden;
   }
 
   .lede {
     margin: 0;
-    font-size: 15px;
+    font-family: var(--font-soft);
+    font-size: 15.5px;
     line-height: 1.75;
-    color: rgba(255, 255, 255, 0.92);
-    text-shadow: 0 1px 10px rgba(0, 60, 80, 0.3);
-
-    strong {
-      font-weight: 600;
-    }
+    color: rgba(255, 255, 255, 0.95);
   }
 
   .jump {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 10px 18px;
+    padding: 12px 22px 11px;
     border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.45);
-    background: rgba(255, 255, 255, 0.12);
-    color: #fff;
-    font-size: 14px;
-    font-weight: 500;
+    background: #fff;
+    color: #1b6f86;
+    font-family: var(--font-display);
+    font-size: 16px;
     text-decoration: none;
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
+    box-shadow: 0 4px 0 rgba(10, 70, 100, 0.25);
+    transition: transform 0.15s var(--ease-out);
 
+    &:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 rgba(10, 70, 100, 0.25);
+    }
     svg {
       animation: bob 1.8s ease-in-out infinite;
     }
+  }
+
+  // 올라가는 기포
+  .rise {
+    position: absolute;
+    bottom: -20px;
+    width: 10px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255, 255, 255, 0.7);
+    background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.7), transparent 60%);
+    animation: rise 7s linear infinite;
+  }
+  .r1 {
+    left: 12%;
+  }
+  .r2 {
+    left: 82%;
+    width: 7px;
+    animation-delay: -2.5s;
+    animation-duration: 6s;
+  }
+  .r3 {
+    left: 68%;
+    width: 13px;
+    animation-delay: -4.5s;
+    animation-duration: 8s;
   }
 
   // ───────── 물속 ─────────
@@ -383,7 +451,7 @@
       h2 {
         flex: 1;
         margin: 0;
-        font-family: var(--font-serif);
+        font-family: var(--font-display);
         font-size: 19px;
         font-weight: 700;
       }
@@ -489,7 +557,7 @@
   // 툴팁 내용
   .tip-title {
     margin: 0 0 8px;
-    font-family: var(--font-serif);
+    font-family: var(--font-display);
     font-weight: 700;
     font-size: 15px;
   }
@@ -537,6 +605,22 @@
     }
   }
 
+  @keyframes drift {
+    to {
+      translate: 18px 0;
+    }
+  }
+  @keyframes beat {
+    0%, 60%, 100% { transform: scale(1); }
+    70% { transform: scale(1.1); }
+    80% { transform: scale(0.97); }
+  }
+  @keyframes rise {
+    to {
+      transform: translateY(-260px);
+      opacity: 0;
+    }
+  }
   @keyframes pendulum {
     from { transform: rotate(-0.6deg); }
     to { transform: rotate(0.6deg); }

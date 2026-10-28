@@ -1,14 +1,17 @@
 // 디자인 토큰 — 사이트는 수중 몰입형이라 단일(다크 수중) 테마. 하늘 영역만 밝다.
 :root {
-  --font-serif: 'Gowun Batang', 'Noto Serif KR', 'Nanum Myeongjo', serif;
+  // 둥근 서체로 귀엽게: 제목 Jua, 문장 Gowun Dodum, 숫자·로고 Fredoka
+  --font-display: 'Jua', 'Fredoka', -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  --font-soft: 'Gowun Dodum', -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  --font-num: 'Fredoka', 'Jua', ui-rounded, system-ui, sans-serif;
   --font-sans: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
 
   // 하늘 (새벽빛)
-  --sky-top: #f4ebe4;
-  --sky-mid: #e7e6e6;
-  --sky-bottom: #cfe5ec;
-  --sky-ink: #0f2b3b;
+  --sky-top: #ffd3df;
+  --sky-mid: #ffe6da;
+  --sky-bottom: #d6f0fb;
+  --sky-ink: #2b3566;
   --sky-ink-dim: rgba(15, 43, 59, 0.62);
 
   // 물

@@ -34,7 +34,7 @@
   }
 
   function retry() {
-    router.go('#/');
+    router.go('#');
   }
 </script>
 
@@ -61,7 +61,7 @@
   {#if showResult}
     <main class="result" aria-live="polite">
       <div class="stack">
-        <ResultCard result={r} image={pairImage.url} bind:node={card} />
+        <ResultCard result={r} image={pairImage.for(token)} bind:node={card} />
         <ShareActions
           {card}
           filename="love-dive-{r.kind === 'void' ? 'abyss' : Math.round(r.depth) + 'm'}.png"
@@ -75,7 +75,7 @@
   <main class="error">
     <div class="err-card">
       <p class="mono code">NO SIGNAL</p>
-      <h1 class="serif">{outcome && !outcome.ok ? outcome.message : ERROR_COPY.signal}</h1>
+      <h1 class="soft">{outcome && !outcome.ok ? outcome.message : ERROR_COPY.signal}</h1>
       <p>링크가 손상되었거나 측정 코드가 올바르지 않습니다.</p>
       <Button variant="primary" block onclick={retry}>다시 측정하기</Button>
     </div>

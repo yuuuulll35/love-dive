@@ -5,6 +5,17 @@
 class PairImage {
   url = $state<string | null>(null);
   name = $state('');
+  /** 이 이미지와 함께 측정한 결과 토큰. 다른 결과(공유 링크 등)에는 붙이지 않는다 */
+  token = $state<string | null>(null);
+
+  /** 측정 직전에 호출: 지금 이미지를 이 결과에 묶는다 */
+  attach(token: string) {
+    this.token = this.url ? token : null;
+  }
+
+  for(token: string): string | null {
+    return this.url && this.token === token ? this.url : null;
+  }
 
   set(url: string, name: string) {
     this.url = url;
@@ -14,6 +25,7 @@ class PairImage {
   clear() {
     this.url = null;
     this.name = '';
+    this.token = null;
   }
 }
 

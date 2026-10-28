@@ -1,15 +1,16 @@
-/** 결과 공유 토큰: base64url(UTF-8 "코드\n페어"). 코드가 평문으로 URL에 보이지 않게만 한다. */
+/**
+ * 결과 공유 토큰: UTF-8 "코드\n페어" 를 16진수로. 해시가 `#dive-<hex>` 처럼 영숫자·하이픈만 쓰도록 해서
+ * 어떤 호스팅(미리보기 프레임 포함)에서도 링크 그대로 전달된다. 코드가 평문으로 보이지 않게만 한다.
+ */
 export function encodeToken(code: string, pair: string): string {
   const bytes = new TextEncoder().encode(`${code}\n${pair.trim()}`);
-  let bin = '';
-  for (const b of bytes) bin += String.fromCharCode(b);
-  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
 }
 
 export function decodeToken(token: string): { code: string; pair: string } | null {
+  if (!/^(?:[0-9a-f]{2})+$/.test(token)) return null;
   try {
-    const bin = atob(token.replace(/-/g, '+').replace(/_/g, '/'));
-    const bytes = Uint8Array.from(bin, (c) => c.charCodeAt(0));
+    const bytes = Uint8Array.from(token.match(/../g)!, (h) => parseInt(h, 16));
     const text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
     const nl = text.indexOf('\n');
     if (nl < 0) return null;
@@ -19,4 +20,4 @@ export function decodeToken(token: string): { code: string; pair: string } | nul
   }
 }
 
-export const diveHash = (code: string, pair: string) => `#/dive/${encodeToken(code, pair)}`;
+export const diveHash = (code: string, pair: string) => `#dive-${encodeToken(code, pair)}`;

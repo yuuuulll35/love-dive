@@ -21,8 +21,12 @@
     timer = setTimeout(() => (toast = ''), 2400);
   }
 
+  // 결과 링크: 코드와 페어 이름이 주소에 담겨 있어서, 받은 사람도 같은 결과를 보게 된다 (이미지는 제외)
   async function copyLink() {
-    say((await copyText(location.href)) ? '링크를 복사했습니다' : '복사하지 못했습니다. 주소창의 링크를 직접 복사해 주세요');
+    const ok = await copyText(location.href);
+    if (!ok) return say('복사하지 못했어요. 주소창의 링크를 직접 복사해 주세요');
+    // 다른 페이지 안에 끼워진 미리보기라면 이 주소는 바깥에서 열리지 않을 수 있다
+    say(window.top !== window.self ? '복사했어요. 미리보기에서는 공유 메뉴의 링크를 써 주세요' : '결과 링크를 복사했어요');
   }
 
   async function save() {
@@ -43,7 +47,7 @@
   <div class="row">
     <Button variant="ghost" onclick={copyLink}>
       <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.5 9.5l3-3M7 4.5l1.2-1.2a2.8 2.8 0 014 4L11 8.5M9 11.5l-1.2 1.2a2.8 2.8 0 01-4-4L5 7.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" /></svg>
-      링크 복사
+      결과 링크 복사
     </Button>
     <Button variant="ghost" onclick={save} disabled={saving || !card}>
       <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5v8M4.5 7L8 10.5 11.5 7M3 13.5h10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>

@@ -1,8 +1,8 @@
-/** 해시 라우터: #/ (입력) · #/dive/<token> (연출+결과) */
+/** 해시 라우터: (없음) 입력 · #dive-<token> 연출+결과 */
 export type Route = { name: 'input' } | { name: 'dive'; token: string };
 
 function parse(hash: string): Route {
-  const m = hash.match(/^#\/dive\/([A-Za-z0-9_-]+)/);
+  const m = hash.match(/^#dive-([0-9a-f]+)$/);
   return m ? { name: 'dive', token: m[1] } : { name: 'input' };
 }
 

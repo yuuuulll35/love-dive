@@ -30,6 +30,19 @@ export const ARCHETYPES: readonly Archetype[] = [
   { id: 'coral', axes: ['lack', 'sac'], title: '산호 무덤', line: '메우려 할수록 자신이 깎여 나간다' },
 ];
 
+export const AXIS_LABELS: Record<ArchetypeAxis, string> = {
+  obs: '집착', dep: '의존', clo: '폐쇄성', ruin: '파멸성', irr: '비가역성',
+  tab: '금기', den: '농도', lack: '결핍', sac: '희생', tru: '신뢰',
+};
+
+/** 결과 카드 해시태그: 5점 이상인 상위 축 최대 3개 */
+export function topAxisTags(s: Scores, max = 3): string[] {
+  return rankAxes(s)
+    .filter((r) => r.score >= ARCHETYPE_MIN_SCORE)
+    .slice(0, max)
+    .map((r) => AXIS_LABELS[r.axis]);
+}
+
 /** 점수 내림차순, 동점은 TIE_ORDER */
 export function rankAxes(s: Scores): { axis: ArchetypeAxis; score: number }[] {
   return TIE_ORDER.map((axis) => ({ axis, score: s[axis as AxisKey] })).sort(

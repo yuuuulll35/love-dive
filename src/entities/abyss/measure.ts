@@ -3,7 +3,7 @@ import { getTables } from '$shared/config/tables';
 import { fnv1a32 } from '$shared/lib/hash';
 import { toAtm } from '$shared/lib/format';
 import { mulberry32, pick } from '$shared/lib/random';
-import { matchArchetype } from './archetype';
+import { matchArchetype, topAxisTags } from './archetype';
 import { applyJitter, computeDepth, FLOAT_THRESHOLD, isUnmeasurable } from './depth';
 import { normalizePair, pairJitter } from './pair';
 import { temperatureOf, type Temperature } from './temperature';
@@ -26,6 +26,8 @@ export interface MeasureResult {
   titleLine: string;
   archetypeId: string | null;
   temperature: Temperature;
+  /** 상위 축 해시태그 (예: 집착, 의존) */
+  tags: string[];
   /** 결과 해설 2~3줄 */
   lines: string[];
   /** 침강 중 통과하는 구간별 문구 */
@@ -74,5 +76,6 @@ export function measure(scores: Scores, pairRaw = ''): MeasureResult {
     zone, title, titleLine,
     archetypeId: arch?.id ?? null,
     temperature, lines, passages,
+    tags: topAxisTags(scores),
   };
 }
