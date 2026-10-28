@@ -183,6 +183,24 @@ class Sound {
     }
   }
 
+  /** 카운트다운 째깍 (마지막은 높고 밝게) */
+  tick(final = false) {
+    const ctx = this.ensure();
+    if (!ctx || !this.master) return;
+    const t = ctx.currentTime;
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = final ? 'triangle' : 'sine';
+    o.frequency.setValueAtTime(final ? 880 : 620, t);
+    if (final) o.frequency.exponentialRampToValueAtTime(1320, t + 0.18);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.2, t + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + (final ? 0.45 : 0.18));
+    o.connect(g).connect(this.master);
+    o.start(t);
+    o.stop(t + 0.5);
+  }
+
   /** 착저: 둔탁한 쿵 */
   thud() {
     const ctx = this.ensure();

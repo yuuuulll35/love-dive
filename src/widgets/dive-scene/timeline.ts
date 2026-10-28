@@ -1,16 +1,19 @@
 import type { MeasureKind } from '$entities/abyss';
 import { clamp, invLerp, lerp } from '$shared/lib/math';
-import { easeDive, easeDiveVelocity, easeInCubic, easeInOutSine, easeOutCubic } from '$shared/lib/easing';
+import { easeDive, easeDiveVelocity, easeInBack, easeInOutSine, easeOutCubic } from '$shared/lib/easing';
 
 /**
  * 연출 타임라인 (순수 함수). 화면 좌표는 뷰포트 높이 비율(0=위, 1=아래).
  *
- * drop   0 ~ 1.2s   측심추 낙하 → 입수(0.7s) → 카메라가 수면 아래로
+ * count  −2.9 ~ 0s  3·2·1·LOVE DIVE! 카운트다운, 추는 수면 위에 매달려 대기
+ * drop   0 ~ 1.2s   다이빙대에서 뛰듯 살짝 솟았다가 낙하 → 입수(0.7s) → 카메라가 수면 아래로
  * sink   가변        수심 카운터 easeDive, 최소 3s ~ 최대 12s (천천히 가라앉는 맛)
  * settle 1.1s        착저 · 모래 먼지
  * (float) bob 2.6s  수면에서 흔들림
  * (void)  glitch 1.8s → blackout 2.2s
  */
+/** 카운트다운 길이 (t 는 −T_COUNT 에서 시작) */
+export const T_COUNT = 2.9;
 export const T_IMPACT = 0.7;
 export const T_DROP = 1.2;
 export const T_SETTLE = 1.4;
@@ -21,9 +24,11 @@ export const VOID_SINK = 8.5;
 
 export const MAX_DEPTH = 10935;
 export const WEIGHT_REST_Y = 0.4;
+/** 카운트다운 동안 추가 매달려 있는 높이 */
+export const HANG_Y = 0.24;
 export const SURFACE_START_Y = 0.5;
 
-export type Phase = 'drop' | 'sink' | 'settle' | 'bob' | 'glitch' | 'blackout' | 'done';
+export type Phase = 'count' | 'drop' | 'sink' | 'settle' | 'bob' | 'glitch' | 'blackout' | 'done';
 
 export interface Frame {
   phase: Phase;
@@ -60,7 +65,8 @@ export function totalDuration(depth: number, kind: MeasureKind): number {
 
 function dropFrame(t: number, kind: MeasureKind): Pick<Frame, 'surfaceY' | 'weightY'> {
   if (t < T_IMPACT) {
-    return { surfaceY: SURFACE_START_Y, weightY: lerp(-0.12, SURFACE_START_Y, easeInCubic(t / T_IMPACT)) };
+    // easeInBack: 다이빙대에서 뛰듯 살짝 솟았다가 가속해 떨어진다
+    return { surfaceY: SURFACE_START_Y, weightY: lerp(HANG_Y, SURFACE_START_Y, easeInBack(t / T_IMPACT)) };
   }
   if (kind === 'float') {
     // 입수 직후 살짝 잠겼다가 떠오른다
@@ -73,9 +79,11 @@ function dropFrame(t: number, kind: MeasureKind): Pick<Frame, 'surfaceY' | 'weig
 
 export function frameAt(t: number, target: number, kind: MeasureKind, hot: boolean): Frame {
   const base: Frame = {
-    phase: 'drop', depth: 0, depthRatio: 0, surfaceY: SURFACE_START_Y, weightY: -0.12,
+    phase: 'drop', depth: 0, depthRatio: 0, surfaceY: SURFACE_START_Y, weightY: HANG_Y,
     seabedY: 1.3, speed: 0, vent: 0, glitch: 0, black: 0,
   };
+
+  if (t < 0) return { ...base, phase: 'count' };
 
   if (t < T_DROP) {
     const d = dropFrame(t, kind);

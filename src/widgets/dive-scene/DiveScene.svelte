@@ -10,7 +10,7 @@
   import SeabedLife from './SeabedLife.svelte';
   import DepthGauge from './DepthGauge.svelte';
   import { Particles } from './particles';
-  import { T_IMPACT, finalFrame, frameAt, totalDuration, type Frame } from './timeline';
+  import { T_COUNT, T_IMPACT, finalFrame, frameAt, totalDuration, type Frame } from './timeline';
 
   interface Props {
     result: MeasureResult;
@@ -27,7 +27,21 @@
   const target = $derived(result.depth);
 
   let frame = $state<Frame>(frameAt(0, 0, 'normal', false));
-  let time = $state(0);
+  let time = $state(-T_COUNT);
+
+  // 카운트다운: 3 · 2 · 1 · LOVE DIVE!
+  const COUNT_STEP = 0.65;
+  const countLabel = $derived.by(() => {
+    if (instant || done || time >= 0.45) return null;
+    if (time >= 0) return 'LOVE DIVE!';
+    const i = Math.floor((time + T_COUNT) / COUNT_STEP);
+    return i < 3 ? String(3 - i) : 'LOVE DIVE!';
+  });
+  let lastCount: string | null = null;
+  $effect(() => {
+    if (countLabel && countLabel !== lastCount) sound.tick(countLabel === 'LOVE DIVE!');
+    lastCount = countLabel;
+  });
   let done = $state(false);
   let canvas: HTMLCanvasElement;
   let host: HTMLDivElement;
@@ -106,7 +120,7 @@
     addEventListener('resize', resize);
 
     const total = totalDuration(target, kind);
-    let t = instant ? total + 1 : 0;
+    let t = instant ? total + 1 : -T_COUNT;
     let last = performance.now();
     let lastZone = zoneIndex(0);
     let fired = { impact: instant, settle: instant, glitch: instant, done: false };
@@ -361,6 +375,12 @@
 
   {#if kind === 'float' && frame.phase === 'bob' && time > 2}
     <p class="passage float-line" aria-hidden="true">{FLOAT_HEADLINE}</p>
+  {/if}
+
+  {#if countLabel}
+    {#key countLabel}
+      <p class="count" class:go={countLabel === 'LOVE DIVE!'} aria-live="assertive">{countLabel}</p>
+    {/key}
   {/if}
 
   {#if frame.black > 0}
@@ -699,6 +719,72 @@
       opacity: 0.6;
     }
   }
+  // ── 카운트다운 ──
+  .count {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 34%;
+    margin: 0;
+    text-align: center;
+    font-family: var(--font-logo);
+    font-weight: 700;
+    font-size: clamp(84px, 26vw, 120px);
+    line-height: 1;
+    color: #2b3566;
+    text-shadow: 5px 5px 0 #ffb3c6;
+    pointer-events: none;
+    z-index: 4;
+    animation: count-pop 0.65s var(--ease-out) both;
+
+    &.go {
+      top: 36%;
+      font-size: clamp(44px, 14vw, 72px);
+      color: #ff5c7a;
+      text-shadow: 4px 4px 0 #2b3566;
+      letter-spacing: 0.02em;
+      animation: go-pop 1.4s var(--ease-out) both;
+    }
+  }
+  @keyframes count-pop {
+    0% {
+      opacity: 0;
+      transform: scale(0.4);
+    }
+    35% {
+      opacity: 1;
+      transform: scale(1.12);
+    }
+    60% {
+      transform: scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(0.92);
+    }
+  }
+  @keyframes go-pop {
+    0% {
+      opacity: 0;
+      transform: scale(0.5) rotate(-6deg);
+    }
+    25% {
+      opacity: 1;
+      transform: scale(1.1) rotate(3deg);
+    }
+    40% {
+      transform: scale(1) rotate(-2deg);
+    }
+    75% {
+      opacity: 1;
+      transform: scale(1) rotate(0);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-20px) scale(1.05);
+    }
+  }
+
   @keyframes fly {
     from {
       translate: -40px 0;

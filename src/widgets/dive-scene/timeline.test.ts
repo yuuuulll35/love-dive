@@ -1,4 +1,4 @@
-import { finalFrame, frameAt, sinkDuration, totalDuration, T_DROP } from './timeline';
+import { finalFrame, frameAt, sinkDuration, totalDuration, T_COUNT, T_DROP, HANG_Y } from './timeline';
 
 describe('timeline', () => {
   it('연출 길이: 최소 3s, 최대 12s, 수심에 비례', () => {
@@ -36,6 +36,14 @@ describe('timeline', () => {
     }
     expect([...phases]).toEqual(['drop', 'sink', 'glitch', 'blackout', 'done']);
     expect(maxDepth).toBeGreaterThan(10935);
+  });
+
+  it('카운트다운 동안은 수면 위에 매달려 기다리고, 낙하 직전에 살짝 솟는다', () => {
+    const c = frameAt(-T_COUNT + 0.1, 4794, 'normal', false);
+    expect(c.phase).toBe('count');
+    expect(c.weightY).toBe(HANG_Y);
+    expect(frameAt(0.1, 4794, 'normal', false).weightY).toBeLessThan(HANG_Y);
+    expect(frameAt(0.69, 4794, 'normal', false).weightY).toBeGreaterThan(0.45);
   });
 
   it('부유는 가라앉지 않는다', () => {

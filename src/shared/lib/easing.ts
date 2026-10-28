@@ -1,5 +1,7 @@
 export const easeOutCubic = (t: number) => 1 - (1 - t) ** 3;
 export const easeInCubic = (t: number) => t ** 3;
+/** 처음에 살짝 반대로 갔다가 가속 (도움닫기) */
+export const easeInBack = (t: number, s = 1.9) => (s + 1) * t ** 3 - s * t ** 2;
 export const easeInOutSine = (t: number) => -(Math.cos(Math.PI * t) - 1) / 2;
 
 /**
