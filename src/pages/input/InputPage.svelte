@@ -72,8 +72,6 @@
   <!-- ───────── 하늘 · 수면 ───────── -->
   <section class="hero" aria-labelledby="site-title">
     <div class="sky">
-      <!-- 타로 카드의 아치 창처럼 로고를 감싸는 두 겹 선 -->
-      <span class="arch" aria-hidden="true"></span>
       {#each SPARKS as [x, y, sz, c], i (i)}
         <svg class="spark {c}" style:left="{x}%" style:top="{y}%" style:width="{sz}px" style:--d="{i * 0.6}s" viewBox="0 0 24 24" aria-hidden="true"><path d={STAR} /></svg>
       {/each}
@@ -273,29 +271,6 @@
     background-image: var(--grain);
     opacity: 0.16;
     mix-blend-mode: multiply;
-  }
-
-  // 로고를 감싸는 아치 (두 겹 선, 아래는 수면으로 열려 있다)
-  .arch {
-    position: absolute;
-    top: 44px;
-    bottom: -40px;
-    left: 50%;
-    width: min(500px, calc(100% - 40px));
-    translate: -50% 0;
-    border: 1.5px solid rgba(43, 53, 102, 0.42);
-    border-bottom: 0;
-    border-radius: 999px 999px 0 0;
-    pointer-events: none;
-
-    &::before {
-      content: '';
-      position: absolute;
-      inset: 6px 6px 0;
-      border: 1px solid rgba(43, 53, 102, 0.2);
-      border-bottom: 0;
-      border-radius: inherit;
-    }
   }
 
   .spark {
