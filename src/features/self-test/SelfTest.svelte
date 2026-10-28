@@ -74,7 +74,7 @@
       <div><dt class="mono">3</dt><dd>분</dd></div>
       <div><dt class="mono">5</dt><dd>단계 응답</dd></div>
     </dl>
-    <p>두 사람을 떠올리며, 각 문장이 얼마나 가까운지 고르세요. 정답은 없고 언제든 이전으로 돌아갈 수 있어요.</p>
+    <p>두 사람을 떠올리며, 각 문장이 얼마나 가까운지 고르세요.</p>
     <Button variant="ghost" block onclick={start}>
       테스트 시작하기
       <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7h8M7.5 3.5L11 7l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
