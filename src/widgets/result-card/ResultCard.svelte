@@ -27,6 +27,17 @@
     abyss: [],
     void: [],
   };
+  // 물빛에 번지는 큰 빛망울 [x%, y%, 지름px]
+  const BOKEH: Record<Tier, readonly (readonly [number, number, number])[]> = {
+    light: [[78, 30, 64], [24, 76, 42], [92, 70, 28]],
+    soft: [[80, 34, 56], [30, 80, 34]],
+    deep: [[76, 40, 48]],
+    abyss: [],
+    void: [],
+  };
+  // 마린 스노우: 깊은 바다에 천천히 떨어지는 입자
+  const SNOW = [[8, 22], [18, 58], [27, 36], [35, 80], [46, 18], [53, 62], [61, 40], [69, 84], [78, 24], [84, 56], [91, 38], [40, 46], [12, 88], [96, 74]] as const;
+
   // 심해의 발광 점
   const GLINTS = [[14, 30], [28, 66], [62, 18], [74, 58], [86, 36], [44, 74]] as const;
 
@@ -51,8 +62,17 @@
         <path d="M0 10 Q25 2 50 10 T100 10 T150 10 T200 10 T250 10 T300 10 T350 10 T400 10 V24 H0Z" />
       </svg>
     {:else if tier !== 'void'}
+      <span class="bloom" aria-hidden="true"></span>
+      {#each BOKEH[tier] as [x, y, s], i (i)}
+        <span class="bokeh" style:left="{x}%" style:top="{y}%" style:width="{s}px" aria-hidden="true"></span>
+      {/each}
+      {#if tier === 'deep' || tier === 'abyss'}
+        {#each SNOW as [x, y], i (i)}
+          <span class="snow" style:left="{x}%" style:top="{y}%" style:--d="{(i % 5) * 1.3}s" aria-hidden="true"></span>
+        {/each}
+      {/if}
       {#each BUBBLES[tier] as [x, y, s], i (i)}
-        <span class="bubble" style:left="{x}%" style:top="{y}%" style:width="{s}px" aria-hidden="true"></span>
+        <span class="bubble" style:left="{x}%" style:top="{y}%" style:width="{s}px" style:--d="{i * 0.7}s" aria-hidden="true"></span>
       {/each}
       {#if tier === 'abyss'}
         {#each GLINTS as [x, y], i (i)}
@@ -199,6 +219,18 @@
       opacity: 0.8;
     }
   }
+  .light .depth {
+    text-shadow: 0 2px 22px rgba(255, 255, 255, 0.7);
+  }
+  .soft .depth {
+    text-shadow: 0 0 26px rgba(190, 235, 255, 0.35);
+  }
+  .deep .depth {
+    text-shadow: 0 0 30px rgba(143, 180, 255, 0.35);
+  }
+  .abyss .depth {
+    text-shadow: 0 0 34px rgba(127, 246, 228, 0.16);
+  }
   .abyss .depth {
     letter-spacing: -0.01em;
     font-size: clamp(62px, 20vw, 84px);
@@ -212,13 +244,85 @@
       3px 0 rgba(42, 255, 234, 0.7);
   }
 
+  // 필름 같은 미세한 입자감
+  .window::after {
+    content: '';
+    position: absolute;
+    z-index: 2;
+    inset: 0;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.5 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+    opacity: 0.14;
+    mix-blend-mode: soft-light;
+  }
+
+  // 수면에서 번져 내려오는 빛
+  .bloom {
+    position: absolute;
+    z-index: -2;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 70% 55% at 22% -8%, rgba(255, 255, 255, 0.55), transparent 70%),
+      radial-gradient(ellipse 50% 45% at 100% 0%, rgba(255, 196, 214, 0.35), transparent 70%);
+  }
+  .soft .bloom {
+    background: radial-gradient(ellipse 70% 55% at 22% -8%, rgba(190, 235, 255, 0.35), transparent 70%);
+  }
+  .deep .bloom {
+    background: radial-gradient(ellipse 60% 50% at 25% 0%, rgba(110, 160, 255, 0.18), transparent 70%);
+  }
+  .abyss .bloom {
+    background: radial-gradient(ellipse 55% 45% at 30% 20%, rgba(127, 246, 228, 0.07), transparent 70%);
+  }
+
+  .bokeh {
+    position: absolute;
+    z-index: -2;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0) 70%);
+    transform: translate(-50%, -50%);
+  }
+  .deep .bokeh {
+    background: radial-gradient(circle, rgba(143, 180, 255, 0.16), transparent 70%);
+  }
+
+  .snow {
+    position: absolute;
+    z-index: -1;
+    width: 2px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: rgba(220, 232, 255, 0.45);
+    animation: drift 7s ease-in-out var(--d) infinite alternate;
+  }
+  .abyss .snow {
+    background: rgba(220, 232, 255, 0.28);
+  }
+
+  .bubble {
+    animation: drift 5s ease-in-out var(--d) infinite alternate;
+  }
+  @keyframes drift {
+    to {
+      transform: translateY(-6px);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .bubble,
+    .snow {
+      animation: none;
+    }
+  }
+
   .bubble {
     position: absolute;
     z-index: -1;
     aspect-ratio: 1;
     border-radius: 50%;
-    border: 1.5px solid rgba(255, 255, 255, 0.75);
-    background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.1) 60%);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    background: radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.9) 0 12%, rgba(255, 255, 255, 0.18) 34%, rgba(255, 255, 255, 0.04) 70%);
+    box-shadow: inset -1px -2px 3px rgba(255, 255, 255, 0.25), 0 0 6px rgba(255, 255, 255, 0.25);
   }
   .deep .bubble {
     border-color: rgba(255, 255, 255, 0.25);
