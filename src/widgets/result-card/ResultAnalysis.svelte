@@ -243,28 +243,24 @@
     .buoy .name em {
       color: var(--buoy);
     }
+    // 가는 네모 칸 9개가 이어진 직선 눈금
     .dots {
       display: flex;
-      gap: 3px;
+      gap: 2px;
 
       i {
         flex: 1;
-        max-width: 18px;
-        aspect-ratio: 1;
-        border-radius: 50%;
-        border: 1px solid var(--rule);
+        height: 4px;
+        background: var(--rule);
       }
       i.on {
-        border-color: var(--accent);
         background: var(--accent);
       }
     }
     .buoy .dots i.on {
-      border-color: var(--buoy);
       background: var(--buoy);
     }
     .tone .dots i.on {
-      border-color: var(--accent-temp, var(--ink-2));
       background: var(--accent-temp, var(--ink-2));
     }
     .val {
