@@ -83,7 +83,7 @@
         >
         <span aria-hidden="true">DIVE</span>
       </h1>
-      <p class="tagline">우리 관계, 몇 m까지 가라앉을까?</p>
+      <p class="tagline">우리 사랑은 얼마나 무거울까?</p>
 
       <div class="hang" aria-hidden="true">
         <Plummet size={34} thread={900} />
@@ -312,22 +312,23 @@
 
     .o {
       display: inline-block;
-      width: 0.74em;
+      width: 0.7em;
       aspect-ratio: 44 / 40;
-      margin: 0 0.02em;
+      // 하트 SVG 좌우 여백만큼 당겨 L·V 사이를 글자 간격에 맞춘다
+      margin: 0 -0.03em 0 -0.05em;
       vertical-align: -0.06em;
       fill: #ff5c7a;
       filter: drop-shadow(4px 4px 0 #ffb3c6);
-      animation: beat 2.4s ease-in-out infinite;
-      transform-origin: 50% 60%;
     }
   }
 
   .tagline {
     position: relative;
     margin: 6px 0 0;
-    font-family: var(--font-display);
-    font-size: clamp(18px, 5.2vw, 22px);
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: clamp(17px, 4.8vw, 20px);
+    letter-spacing: -0.01em;
     color: #2b3566;
   }
 
@@ -609,11 +610,6 @@
     to {
       translate: 18px 0;
     }
-  }
-  @keyframes beat {
-    0%, 60%, 100% { transform: scale(1); }
-    70% { transform: scale(1.1); }
-    80% { transform: scale(0.97); }
   }
   @keyframes rise {
     to {
