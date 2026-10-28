@@ -75,14 +75,6 @@
     {/if}
     {#if hot && tier !== 'void' && result.kind !== 'float'}<span class="vent" aria-hidden="true"></span>{/if}
 
-    <span class="thread" aria-hidden="true"></span>
-    {#if tier !== 'void'}
-      <svg class="heart" viewBox="0 0 44 40" aria-hidden="true">
-        <circle cx="22" cy="4" r="3" fill="none" stroke="currentColor" stroke-width="1.6" />
-        <path d="M22 38C11 31 3 24 3 15.5 3 9.6 7.7 5 13.4 5c3.6 0 6.8 1.8 8.6 4.6C23.8 6.8 27 5 30.6 5 36.3 5 41 9.6 41 15.5 41 24 33 31 22 38z" />
-      </svg>
-    {/if}
-
     <p class="logo">LOVE DIVE</p>
 
     {#if result.kind === 'void'}
@@ -145,10 +137,6 @@
     --rule: #efe6dc;
     --chip: #ffe8ee;
     --accent: #ff5c7a;
-    --heart: #ff5c7a;
-    --heart-ring: #c9d1dc;
-    --thread-w: 2px;
-    --heart-w: 46px;
     --title-w: 800;
     --title-ls: -0.02em;
     --stat-bg: #fff;
@@ -188,10 +176,6 @@
     --rule: rgba(233, 238, 249, 0.12);
     --chip: rgba(143, 180, 255, 0.12);
     --accent: #8fb4ff;
-    --heart: #e8496b;
-    --heart-ring: #7d879b;
-    --thread-w: 1.5px;
-    --heart-w: 36px;
     --title-w: 600;
     --title-ls: -0.01em;
     --stat-bg: rgba(255, 255, 255, 0.04);
@@ -206,10 +190,6 @@
     --rule: rgba(231, 232, 238, 0.1);
     --chip: transparent;
     --accent: #c8cfdf;
-    --heart: #b8344f;
-    --heart-ring: #4c5260;
-    --thread-w: 1px;
-    --heart-w: 28px;
     --title-w: 500;
     --title-ls: 0.04em;
     --stat-bg: transparent;
@@ -365,40 +345,7 @@
     background: radial-gradient(ellipse 70% 60% at 72% 110%, rgba(255, 95, 60, 0.7), transparent 70%);
   }
 
-  .thread {
-    position: absolute;
-    z-index: -1;
-    top: 0;
-    right: calc(30px + var(--heart-w) / 2 - var(--thread-w) / 2);
-    bottom: calc(14px + var(--heart-w) * 0.86);
-    width: var(--thread-w);
-    background: #ff4d6d;
-    box-shadow: 0 0 6px rgba(255, 77, 109, 0.55);
-  }
-  .card:has(.wave) .thread {
-    bottom: calc(34px + var(--heart-w) * 0.86);
-  }
-  .void .thread {
-    bottom: 0;
-    opacity: 0.6;
-  }
 
-  .heart {
-    position: absolute;
-    right: 30px;
-    bottom: 14px;
-    width: var(--heart-w);
-    aspect-ratio: 44 / 40;
-    fill: var(--heart);
-    color: var(--heart-ring);
-    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.25));
-  }
-  .card:has(.wave) .heart {
-    bottom: 34px;
-  }
-  .abyss .heart {
-    filter: drop-shadow(0 0 10px rgba(232, 73, 107, 0.5));
-  }
 
   // ───── 본문 ─────
   .body {
