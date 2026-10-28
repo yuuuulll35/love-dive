@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { waterColor, type MeasureResult } from '$entities/abyss';
+  import { waterColor, ZONES, type MeasureResult } from '$entities/abyss';
   import { formatAtm, formatDepth } from '$shared/lib/format';
   import { depthMood, type Tier } from './mood';
 
@@ -20,13 +20,23 @@
   const waterBottom = $derived(rgb(waterColor(result.depth)));
   const hot = $derived(result.temperature.id === 'hot');
 
+  // 바닥에서 피어오르는 물방울 줄기 [x%, y%, 지름px]
   const BUBBLES: Record<Tier, readonly (readonly [number, number, number])[]> = {
-    light: [[10, 70, 14], [19, 50, 8], [7, 32, 6], [64, 22, 10], [76, 44, 6], [56, 64, 7], [86, 18, 5]],
-    soft: [[12, 66, 9], [70, 26, 7], [80, 52, 5], [22, 40, 5]],
-    deep: [[16, 60, 5], [72, 30, 4]],
+    light: [[58, 78, 11], [61, 64, 8], [57, 52, 6], [60, 41, 5], [58, 31, 4], [88, 70, 7], [86, 58, 5], [89, 47, 4]],
+    soft: [[84, 74, 8], [86, 60, 6], [83, 48, 4], [85, 38, 3]],
+    deep: [[84, 66, 5], [82, 54, 3]],
     abyss: [],
     void: [],
   };
+
+  // 수심 눈금: 0 ~ 최대 수심을 로그 스케일로 펼친 구간 띠
+  const MAX = 10935;
+  const pos = (d: number) => Math.min(1, Math.log1p(Math.max(0, d)) / Math.log1p(MAX));
+  const SEGMENTS = ZONES.map((z) => {
+    const to = Math.min(z.to, MAX);
+    return { id: z.id, grow: pos(to) - pos(z.from), color: rgb(waterColor((z.from + to) / 2)) };
+  });
+  const marker = $derived(pos(result.depth) * 100);
   // 심해의 발광 점
   const GLINTS = [[14, 30], [28, 66], [62, 18], [74, 58], [86, 36], [44, 74]] as const;
 
@@ -51,6 +61,7 @@
         <path d="M0 10 Q25 2 50 10 T100 10 T150 10 T200 10 T250 10 T300 10 T350 10 T400 10 V24 H0Z" />
       </svg>
     {:else if tier !== 'void'}
+      {#if tier === 'light' || tier === 'soft'}<span class="rays" aria-hidden="true"></span>{/if}
       {#each BUBBLES[tier] as [x, y, s], i (i)}
         <span class="bubble" style:left="{x}%" style:top="{y}%" style:width="{s}px" aria-hidden="true"></span>
       {/each}
@@ -59,8 +70,28 @@
           <span class="glint" style:left="{x}%" style:top="{y}%" aria-hidden="true"></span>
         {/each}
       {/if}
-      <svg class="bed" viewBox="0 0 400 44" preserveAspectRatio="none" aria-hidden="true">
-        <path d="M0 24C60 10 110 28 180 20S300 6 400 22V44H0z" />
+      <svg class="bed" viewBox="0 0 400 60" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+        {#if tier === 'light'}
+          <!-- 다시마·산호·불가사리 -->
+          <g class="weed">
+            <path d="M34 50C26 36 40 26 32 12M34 50C40 38 30 30 38 20" />
+            <path d="M330 52C324 40 336 32 328 18M336 52C342 42 334 34 342 26" />
+          </g>
+          <g class="coral">
+            <path d="M376 50V36M376 42L366 32M376 40L386 30M366 32L362 26M386 30L390 25" />
+          </g>
+          <path class="star" d="M92 47l2.4 4.6 5.1.6-3.8 3.4 1 5-4.7-2.5-4.7 2.5 1-5-3.8-3.4 5.1-.6z" />
+        {:else if tier === 'soft'}
+          <g class="weed thin">
+            <path d="M40 52C36 42 44 36 40 26" />
+            <path d="M352 52C348 44 356 38 352 30" />
+          </g>
+        {:else}
+          <!-- 바위 둔덕 -->
+          <path class="rock" d="M20 60C24 46 40 42 54 48S70 60 70 60zM300 60C306 50 322 44 336 50S352 60 352 60z" />
+        {/if}
+        <path class="dune back" d="M0 40C70 28 120 44 200 36S330 24 400 34V60H0z" />
+        <path class="dune" d="M0 50C60 40 130 54 210 46S330 40 400 48V60H0z" />
       </svg>
     {/if}
     {#if hot && tier !== 'void' && result.kind !== 'float'}<span class="vent" aria-hidden="true"></span>{/if}
@@ -79,6 +110,16 @@
       <p class="depth glitch">측정 불가</p>
     {:else}
       <p class="depth">{formatDepth(result.depth)}<span class="unit">m</span></p>
+      <div class="gauge" style:--at="{marker}%">
+        <span class="pin">{result.zone.name}</span>
+        <div class="track" aria-hidden="true">
+          {#each SEGMENTS as seg (seg.id)}
+            <span class:on={seg.id === result.zone.id} style:flex-grow={seg.grow} style:background={seg.color}></span>
+          {/each}
+          <i class="mark"></i>
+        </div>
+        <div class="ends" aria-hidden="true"><span>0</span><span>10,935m</span></div>
+      </div>
     {/if}
   </div>
 
@@ -146,7 +187,7 @@
     position: relative;
     overflow: hidden;
     isolation: isolate;
-    padding: 18px 22px 74px;
+    padding: 18px 22px 84px;
     background: linear-gradient(to bottom, var(--top), var(--bottom));
     color: #fff;
   }
@@ -243,15 +284,134 @@
     right: 0;
     bottom: 0;
     width: 100%;
-    aspect-ratio: 400 / 44;
-    fill: rgba(255, 255, 255, 0.35);
+    aspect-ratio: 400 / 60;
+    overflow: visible;
+
+    .dune {
+      fill: #f3e6cf;
+    }
+    .dune.back {
+      fill: #e4d3b4;
+      opacity: 0.7;
+    }
+    .weed path {
+      fill: none;
+      stroke: #3f9e7d;
+      stroke-width: 5;
+      stroke-linecap: round;
+    }
+    .weed.thin path {
+      stroke-width: 3;
+      stroke: rgba(170, 220, 230, 0.5);
+    }
+    .coral path {
+      fill: none;
+      stroke: #ff8f8f;
+      stroke-width: 4;
+      stroke-linecap: round;
+    }
+    .star {
+      fill: #ffb25c;
+    }
+    .rock {
+      fill: rgba(255, 255, 255, 0.06);
+    }
   }
-  .soft .bed {
-    fill: rgba(255, 255, 255, 0.14);
+  .soft .bed .dune {
+    fill: rgba(255, 255, 255, 0.16);
   }
-  .deep .bed,
-  .abyss .bed {
+  .soft .bed .dune.back {
+    fill: rgba(255, 255, 255, 0.08);
+  }
+  .deep .bed .dune,
+  .abyss .bed .dune {
     fill: var(--bg);
+  }
+  .deep .bed .dune.back,
+  .abyss .bed .dune.back {
+    fill: rgba(255, 255, 255, 0.05);
+  }
+
+  // 수면에서 비스듬히 꽂히는 빛줄기
+  .rays {
+    position: absolute;
+    z-index: -2;
+    inset: 0;
+    background:
+      linear-gradient(104deg, transparent 18%, rgba(255, 255, 255, 0.38) 21%, transparent 27%),
+      linear-gradient(98deg, transparent 40%, rgba(255, 255, 255, 0.26) 44%, transparent 52%),
+      linear-gradient(110deg, transparent 62%, rgba(255, 255, 255, 0.3) 65%, transparent 70%),
+      linear-gradient(101deg, transparent 80%, rgba(255, 255, 255, 0.2) 84%, transparent 90%);
+    mask-image: linear-gradient(to bottom, #000, transparent 85%);
+  }
+  .soft .rays {
+    opacity: 0.35;
+  }
+
+  // ───── 수심 눈금 ─────
+  .gauge {
+    position: relative;
+    margin-top: 18px;
+    max-width: 236px;
+    padding-top: 26px;
+  }
+  .pin {
+    position: absolute;
+    top: 0;
+    left: clamp(0px, calc(var(--at) - 22px), calc(100% - 52px));
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: var(--ink);
+    color: var(--bg);
+    font-size: 11.5px;
+    font-weight: 700;
+    line-height: 1.3;
+    white-space: nowrap;
+  }
+  .light .pin {
+    background: #1f2a44;
+    color: #fff;
+  }
+  .deep .pin,
+  .abyss .pin {
+    background: rgba(255, 255, 255, 0.92);
+    color: #0c1530;
+  }
+  .track {
+    position: relative;
+    display: flex;
+    gap: 2px;
+
+    span {
+      padding-top: 6px;
+      border-radius: 2px;
+      opacity: 0.55;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+    }
+    span.on {
+      opacity: 1;
+    }
+  }
+  .mark {
+    position: absolute;
+    top: 50%;
+    left: var(--at);
+    width: 14px;
+    aspect-ratio: 1;
+    border: 3px solid #fff;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    transform: translate(-50%, -50%);
+  }
+  .ends {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 6px;
+    font-size: 10.5px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.6;
   }
 
   .wave {
@@ -293,7 +453,10 @@
 
   // ───── 페어 이미지 측심추 ─────
   .window.with-img {
-    padding-bottom: 128px;
+    padding-bottom: 96px;
+    .gauge {
+      max-width: calc(100% - 124px);
+    }
   }
   .hanger {
     position: absolute;
