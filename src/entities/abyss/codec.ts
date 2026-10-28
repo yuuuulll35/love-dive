@@ -4,12 +4,19 @@ import type { DecodeResult, Scores } from './types';
 const HEADER = 'ABYSS';
 const GROUP_SIZES = [4, 4, 4, 2] as const;
 
+const SEP = '[\\s\\-‐‑‒–—―_·.:]*';
+// 해설 문장 + 코드블록을 통째로 붙여넣어도 코드 모양 덩어리를 찾아낸다 (해설에 'ABYSS'라는 말이 섞여도)
+const CODE_SHAPE = new RegExp(`ABYSS${SEP}([A-Z0-9]{4})${SEP}([A-Z0-9]{4})${SEP}([A-Z0-9]{4})${SEP}([A-Z0-9]{2})(?![A-Z0-9])`, 'g');
+
 /**
  * 입력 정규화: 대문자 변환, 코드블록·따옴표 제거, 공백·하이픈류 → '-'.
  * `abyss 9tat yjuz 52dw qk`, "```ABYSS-…```" 등도 통과시킨다.
  */
 export function normalizeCode(raw: string): string {
   let s = raw.toUpperCase().replace(/[`'"“”‘’「」『』<>\[\]()]/g, ' ');
+  // 코드 모양이 있으면 마지막 것을 쓴다 (AI 답변은 해설 뒤에 코드가 온다)
+  const shaped = [...s.matchAll(CODE_SHAPE)].pop();
+  if (shaped) return [HEADER, ...shaped.slice(1, 5)].join('-');
   // 앞뒤 잡문이 섞였으면 헤더부터 잘라낸다
   const at = s.indexOf(HEADER);
   if (at > 0) s = s.slice(at);

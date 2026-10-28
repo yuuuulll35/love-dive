@@ -147,6 +147,20 @@ describe('#3 형식 오류', () => {
   });
 });
 
+describe('AI 답변 통째로 붙여넣기', () => {
+  it('해설에 ABYSS 라는 말이 섞여도 마지막 코드 덩어리를 읽는다', () => {
+    const answer = [
+      '두 사람은 서로를 ABYSS처럼 깊은 곳까지 끌고 내려간다. abyss-like 한 집착이 보인다.',
+      '신뢰는 흔들리지만 관계는 끊기지 않는다.',
+      '',
+      '```',
+      'ABYSS-3863-P6U2-E2F9-ZZ',
+      '```',
+    ].join('\n');
+    expect(decodeCode(answer)).toMatchObject({ ok: true, code: 'ABYSS-3863-P6U2-E2F9-ZZ' });
+  });
+});
+
 describe('#4 슬롯 문자 불일치', () => {
   it('S1에 A → ERR_SIGNAL', () => {
     expect(decodeCode('ABYSS-ATAT-YJUZ-52DW-QK')).toEqual({ ok: false, error: 'ERR_SIGNAL', slot: 1 });
