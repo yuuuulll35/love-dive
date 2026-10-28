@@ -13,9 +13,11 @@
     flip?: boolean;
     /** 먼 배경층: 흐리고 느리게 */
     far?: boolean;
+    /** 카메라 하강으로 위로 밀려난 거리(px) */
+    lift?: number;
     onend?: () => void;
   }
-  let { id, pos = 0.4, scale = 1, flip = false, far = false, onend }: Props = $props();
+  let { id, pos = 0.4, scale = 1, flip = false, far = false, lift = 0, onend }: Props = $props();
 
   const RISERS: CreatureId[] = ['jelly', 'siphon', 'vampire'];
   const rise = $derived(RISERS.includes(id));
@@ -40,6 +42,7 @@
   class:far
   style:--pos={pos}
   style:--k={scale}
+  style:translate="0 {-lift}px"
   onanimationend={(e) => e.target === e.currentTarget && onend?.()}
   aria-hidden="true"
 >

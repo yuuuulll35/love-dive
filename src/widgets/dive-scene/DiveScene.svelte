@@ -33,8 +33,13 @@
   let host: HTMLDivElement;
 
   // 구간 통과 이벤트
-  type Spawn = { key: number; id: CreatureId; pos: number; scale: number; flip: boolean; far: boolean };
+  /** at: 나타난 순간의 카메라 누적 하강 거리(px) */
+  type Spawn = { key: number; id: CreatureId; pos: number; scale: number; flip: boolean; far: boolean; at: number };
   let creatures = $state<Spawn[]>([]);
+  let scrollPx = $state(0);
+  // 실제보다 느리게 올려 보내 생물을 감상할 시간을 준다. 먼 생물·거대한 고래는 더 느리게(시차)
+  const BIG: CreatureId[] = ['whale', 'sperm'];
+  const liftOf = (c: Spawn) => (scrollPx - c.at) * (BIG.includes(c.id) ? 0.16 : c.far ? 0.18 : 0.35);
   let passage = $state<{ key: number; text: string } | null>(null);
   let spawnKey = 0;
 
@@ -45,6 +50,7 @@
       ...creatures,
       {
         key: ++spawnKey,
+        at: scrollPx,
         id,
         pos: 0.12 + Math.random() * 0.62,
         scale: (far ? 0.55 : 0.8) + Math.random() * 0.4,
@@ -214,6 +220,9 @@
       if (f.phase === 'done') finish();
 
       particles.update(dt, f, w / 2, t);
+      scrollPx = particles.scrollPx;
+      // 생물은 제 깊이에 머문다: 카메라가 내려간 만큼 위로 밀려 올라가고, 화면 위로 충분히 벗어나면 정리
+      if (creatures.some((c) => liftOf(c) > h * 1.4)) creatures = creatures.filter((c) => liftOf(c) <= h * 1.4);
       particles.draw(f, { tint: seabedColor.join(',') });
       raf = requestAnimationFrame(step);
     };
@@ -301,6 +310,7 @@
         scale={c.scale}
         flip={c.flip}
         far={c.far}
+        lift={liftOf(c)}
         onend={() => (creatures = creatures.filter((x) => x.key !== c.key))}
       />
     {/each}

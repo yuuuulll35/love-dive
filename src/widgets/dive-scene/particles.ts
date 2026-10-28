@@ -34,6 +34,10 @@ export class Particles {
   private glowAcc = 0;
   /** 카메라가 내려간 누적 거리(px) — 양옆 암벽 시차 스크롤용 */
   private scroll = 0;
+  /** 카메라가 내려간 누적 거리(px). 생물이 제 깊이에 머물도록 DiveScene 이 읽는다 */
+  get scrollPx() {
+    return this.scroll;
+  }
   private sparkAcc = 0;
   private time = 0;
 
