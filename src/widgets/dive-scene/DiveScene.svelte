@@ -336,7 +336,6 @@
   {#if frame.seabedY < 1.2}
     <div class="seabed" style:top="{frame.seabedY * 100}dvh" style:--bed={rgb(seabedColor)} aria-hidden="true">
       <svg viewBox="0 0 400 120" preserveAspectRatio="none">
-        <path class="far" d="M0 26C50 12 90 30 150 20S260 4 320 18 380 24 400 16V120H0z" />
         <path class="near" d="M0 34C40 26 80 40 140 32S250 22 300 30 370 40 400 30V120H0z" />
       </svg>
       {#if kind === 'normal'}<SeabedLife zone={result.zone.id} />{/if}
@@ -519,11 +518,6 @@
       display: block;
       width: 100%;
       height: 100%;
-    }
-    .far {
-      fill: var(--bed);
-      opacity: 0.45;
-      transform: translateY(-14px);
     }
     .near {
       fill: var(--bed);
