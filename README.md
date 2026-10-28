@@ -11,6 +11,9 @@ npm run check    # svelte-check 타입 검사
 npm run build    # dist/ 를 그대로 정적 호스팅 (base: './' 라 하위 경로 OK)
 ```
 
+`main` 에 푸시하면 `.github/workflows/pages.yml` 이 테스트 후 GitHub Pages 로 배포한다
+(처음 한 번 Settings → Pages → Source 를 "GitHub Actions" 로 지정).
+
 ## 구조 (FSD 라이트)
 
 | 레이어 | 내용 |
