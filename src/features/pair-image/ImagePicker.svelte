@@ -92,7 +92,7 @@
     padding: 0 16px;
     border-radius: var(--radius-sm);
     border: 1px dashed var(--line-strong);
-    background: rgba(2, 10, 24, 0.25);
+    background: var(--well, rgba(2, 10, 24, 0.25));
     color: var(--ink-dim);
     font-size: 15px;
     text-align: left;
@@ -119,7 +119,7 @@
     padding: 8px;
     border-radius: var(--radius-sm);
     border: 1px solid var(--line-strong);
-    background: rgba(2, 10, 24, 0.38);
+    background: var(--well, rgba(2, 10, 24, 0.38));
 
     img {
       flex: none;
@@ -127,7 +127,7 @@
       height: 48px;
       border-radius: 10px;
       object-fit: contain;
-      background: repeating-conic-gradient(rgba(255, 255, 255, 0.08) 0 25%, transparent 0 50%) 0 0 / 12px 12px;
+      background: repeating-conic-gradient(var(--tint, rgba(255, 255, 255, 0.08)) 0 25%, transparent 0 50%) 0 0 / 12px 12px;
     }
   }
 

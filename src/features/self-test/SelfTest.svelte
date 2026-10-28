@@ -172,7 +172,7 @@
     margin: 0;
     border: 1px solid var(--line);
     border-radius: 14px;
-    background: rgba(2, 10, 24, 0.3);
+    background: var(--well, rgba(2, 10, 24, 0.3));
 
     div {
       display: grid;
@@ -250,7 +250,7 @@
     width: 18px;
     height: 16px;
     transform: translate(-50%, -50%);
-    fill: #3c4556;
+    fill: var(--heart-fill, #3c4556);
     stroke: var(--thread);
     stroke-width: 1.5;
     filter: drop-shadow(0 0 6px rgba(255, 77, 109, 0.55));
@@ -300,7 +300,7 @@
 
   .opt {
     --c: var(--ink-dim);
-    --c-soft: rgba(255, 255, 255, 0.06);
+    --c-soft: var(--tint, rgba(255, 255, 255, 0.06));
     position: relative;
     display: grid;
     grid-template-columns: 28px 1fr auto;
@@ -310,7 +310,7 @@
     padding: 0 14px 0 10px;
     border-radius: 14px;
     border: 1px solid var(--line);
-    background: rgba(2, 10, 24, 0.28);
+    background: var(--well, rgba(2, 10, 24, 0.28));
     text-align: left;
     overflow: hidden;
     animation: rise 0.45s var(--ease-out) both;
@@ -460,7 +460,7 @@
       padding: 8px 14px;
       border-radius: 10px;
       border: 1px dashed var(--line-strong);
-      background: rgba(1, 6, 16, 0.5);
+      background: var(--well, rgba(1, 6, 16, 0.5));
       font-size: 14px;
       letter-spacing: 0.08em;
       color: var(--ink);

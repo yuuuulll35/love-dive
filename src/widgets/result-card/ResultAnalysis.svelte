@@ -1,5 +1,6 @@
 <!-- 두 사람의 사랑의 무게: 이유 문장 · 상세 항목 · 칭호·온도 근거 -->
 <script lang="ts">
+  import Corners from '$shared/ui/Corners.svelte';
   import { explain, type MeasureResult } from '$entities/abyss';
   import { depthMood } from './mood';
 
@@ -17,6 +18,7 @@
 </script>
 
 <section class="analysis {mood.tier}" data-tier={mood.tier} style:--rad="{mood.radius}px" aria-labelledby="why-title">
+  <Corners />
   <h3 id="why-title">두 사람의 사랑의 무게</h3>
 
   <div class="reasons">
@@ -66,6 +68,8 @@
 
 <style lang="scss">
   .analysis {
+    --frame-ink: var(--frame);
+    position: relative;
     display: grid;
     gap: 22px;
     width: 100%;

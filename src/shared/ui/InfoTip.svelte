@@ -49,7 +49,7 @@
     padding: 0;
     border-radius: 50%;
     border: 1px solid var(--line-strong);
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--well, rgba(255, 255, 255, 0.05));
     color: var(--ink-dim);
     font-family: var(--font-mono);
     font-size: 13px;
@@ -74,10 +74,10 @@
     padding: 14px 16px;
     border-radius: var(--radius);
     border: 1px solid var(--line-strong);
-    background: rgba(4, 14, 32, 0.96);
+    background: var(--pop-bg, rgba(4, 14, 32, 0.96));
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    box-shadow: 0 20px 50px -16px rgba(0, 0, 0, 0.8);
+    box-shadow: 0 20px 50px -16px rgba(0, 0, 0, 0.45);
     animation: pop 0.18s var(--ease-out);
 
     &::before {

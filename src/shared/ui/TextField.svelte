@@ -39,7 +39,7 @@
     padding: 0 16px;
     border-radius: var(--radius-sm);
     border: 1px solid var(--line-strong);
-    background: rgba(2, 10, 24, 0.38);
+    background: var(--well, rgba(2, 10, 24, 0.38));
     font-size: 16px; // iOS 줌 방지
     transition:
       border-color 0.2s,
@@ -52,7 +52,7 @@
     &:focus {
       outline: none;
       border-color: var(--biolume);
-      background: rgba(2, 10, 24, 0.55);
+      background: var(--well-focus, rgba(2, 10, 24, 0.55));
       box-shadow: 0 0 0 4px rgba(127, 246, 228, 0.12);
     }
   }

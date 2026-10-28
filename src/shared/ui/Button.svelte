@@ -60,15 +60,24 @@
   .primary {
     border-color: transparent;
     color: #fff;
-    background: linear-gradient(180deg, #ff5c79, #e8395b);
+    background: #ff5c7a;
+    // 우표처럼 안쪽 가는 선 + 스티커 그림자
     box-shadow:
-      0 10px 30px -10px rgba(255, 77, 109, 0.7),
-      inset 0 1px 0 rgba(255, 255, 255, 0.25);
+      inset 0 0 0 3px #ff5c7a,
+      inset 0 0 0 4px rgba(255, 255, 255, 0.55),
+      0 4px 0 #d9415f;
     font-weight: 600;
 
+    &:active:not(:disabled) {
+      transform: translateY(2px);
+      box-shadow:
+        inset 0 0 0 3px #ff5c7a,
+        inset 0 0 0 4px rgba(255, 255, 255, 0.55),
+        0 2px 0 #d9415f;
+    }
     @media (hover: hover) {
       &:hover:not(:disabled) {
-        background: linear-gradient(180deg, #ff6d87, #f0466a);
+        background: #ff6d87;
       }
     }
   }

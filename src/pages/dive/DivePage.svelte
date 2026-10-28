@@ -7,6 +7,7 @@
   import ResultCard from '$widgets/result-card/ResultCard.svelte';
   import ResultAnalysis from '$widgets/result-card/ResultAnalysis.svelte';
   import Button from '$shared/ui/Button.svelte';
+  import Corners from '$shared/ui/Corners.svelte';
   import { sound } from '$shared/lib/sound.svelte';
   import { pairImage } from '$features/pair-image/store.svelte';
   import { ERROR_COPY } from '$shared/config/copy';
@@ -54,7 +55,8 @@
 
   {#if asking}
     <div class="ask" role="dialog" aria-modal="true" aria-labelledby="ask-title">
-      <div class="ask-card">
+      <div class="ask-card paper">
+        <Corners />
         <svg class="ask-icon" width="28" height="28" viewBox="0 0 18 18" aria-hidden="true"><path d="M3 7h3l4-3v10l-4-3H3z" fill="currentColor" /><path d="M12.5 6.5a3.5 3.5 0 010 5M14.5 4.5a6.4 6.4 0 010 9" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" /></svg>
         <p class="ask-title" id="ask-title">소리를 켤까요?</p>
         <p class="ask-sub">물에 빠지는 소리, 고래 울음, 깊은 바다의 웅웅거림이 들려요.</p>
@@ -96,7 +98,8 @@
   {/if}
 {:else}
   <main class="error">
-    <div class="err-card">
+    <div class="err-card paper">
+      <Corners />
       <p class="mono code">NO SIGNAL</p>
       <h1>{outcome && !outcome.ok ? outcome.message : ERROR_COPY.signal}</h1>
       <p>링크가 손상되었거나 측정 코드가 올바르지 않습니다.</p>
@@ -165,14 +168,8 @@
     gap: 6px;
     width: 100%;
     max-width: 320px;
-    padding: 26px 22px 18px;
-    border-radius: 24px;
-    background: rgba(255, 255, 255, 0.92);
-    color: #2b3566;
+    padding: 28px 22px 18px;
     text-align: center;
-    box-shadow: 0 20px 50px -20px rgba(43, 53, 102, 0.45);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
   }
 
   .ask-icon {
@@ -184,13 +181,14 @@
     margin: 0;
     font-size: 20px;
     font-weight: 700;
+    color: var(--ink);
   }
 
   .ask-sub {
     margin: 0 0 14px;
     font-size: 13.5px;
     line-height: 1.6;
-    color: rgba(43, 53, 102, 0.7);
+    color: var(--ink-dim);
     text-wrap: balance;
   }
 
@@ -206,7 +204,7 @@
     background: none;
     font-size: 14px;
     font-weight: 500;
-    color: rgba(43, 53, 102, 0.7);
+    color: var(--ink-dim);
   }
 
   .result {
@@ -240,6 +238,7 @@
     max-width: 380px;
     display: grid;
     gap: 14px;
+    padding: 30px 22px 24px;
     text-align: center;
 
     .code {

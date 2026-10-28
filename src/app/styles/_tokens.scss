@@ -30,6 +30,11 @@
   --glass: rgba(6, 22, 48, 0.42);
   --glass-strong: rgba(4, 14, 32, 0.72);
 
+  // 종이 카드
+  --paper-bg: #fbf6ee;
+  --frame-ink: #31508a;
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.45 0 0 0 0 0.4 0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+
   // 측심줄: 은회색 줄 (하늘·물속 어디서든 보이게 옅은 테두리)
   --rope: #b9c1cd;
   --rope-edge: rgba(30, 40, 60, 0.28);

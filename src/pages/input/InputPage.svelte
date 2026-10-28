@@ -12,6 +12,7 @@
   import Button from '$shared/ui/Button.svelte';
   import TextField from '$shared/ui/TextField.svelte';
   import InfoTip from '$shared/ui/InfoTip.svelte';
+  import Corners from '$shared/ui/Corners.svelte';
   import { ZONES } from '$entities/abyss';
 
   type Mode = 'ai' | 'test';
@@ -54,6 +55,13 @@
     handOff({ kind: 'test', text: '테스트 결과값이 들어갔어요.' });
   }
 
+  // 하늘에 흩어진 반짝이 [x%, y%, 크기px, 색]
+  const STAR = 'M12 0C12.8 7 17 11.2 24 12 17 12.8 12.8 17 12 24 11.2 17 7 12.8 0 12 7 11.2 11.2 7 12 0Z';
+  const SPARKS = [
+    [16, 30, 14, 'ink'], [22, 62, 9, 'pink'], [80, 24, 11, 'pink'], [86, 54, 15, 'ink'],
+    [10, 76, 8, 'white'], [70, 12, 8, 'white'], [92, 80, 9, 'white'],
+  ] as const;
+
   const zoneLegend = ZONES.slice(1).map((z) => ({
     ...z,
     range: `${z.from.toLocaleString()} – ${Number.isFinite(z.to) ? z.to.toLocaleString() : '10,935'}m`,
@@ -64,6 +72,11 @@
   <!-- ───────── 하늘 · 수면 ───────── -->
   <section class="hero" aria-labelledby="site-title">
     <div class="sky">
+      <!-- 타로 카드의 아치 창처럼 로고를 감싸는 두 겹 선 -->
+      <span class="arch" aria-hidden="true"></span>
+      {#each SPARKS as [x, y, sz, c], i (i)}
+        <svg class="spark {c}" style:left="{x}%" style:top="{y}%" style:width="{sz}px" style:--d="{i * 0.6}s" viewBox="0 0 24 24" aria-hidden="true"><path d={STAR} /></svg>
+      {/each}
       <span class="cloud c1" aria-hidden="true"></span>
       <span class="cloud c2" aria-hidden="true"></span>
       <span class="cloud c3" aria-hidden="true"></span>
@@ -115,9 +128,10 @@
   <!-- ───────── 물속 ───────── -->
   <div class="sea">
     <div class="col">
-      <section class="glass" id="get-code" aria-labelledby="get-code-title">
+      <section class="glass paper" id="get-code" aria-labelledby="get-code-title">
+        <Corners />
         <header>
-          <span class="step mono">01</span>
+          <span class="step">I</span>
           <h2 id="get-code-title">측정 코드 테스트</h2>
         </header>
 
@@ -156,9 +170,10 @@
         </div>
       </section>
 
-      <form class="glass form" id="measure" onsubmit={submit} novalidate aria-labelledby="measure-title">
+      <form class="glass paper form" id="measure" onsubmit={submit} novalidate aria-labelledby="measure-title">
+        <Corners />
         <header>
-          <span class="step mono">02</span>
+          <span class="step">II</span>
           <h2 id="measure-title">결과값 넣기</h2>
           <InfoTip label="바다의 층 보기">
             <p class="tip-title">바다의 층</p>
@@ -247,6 +262,62 @@
     background: linear-gradient(to bottom, #ffd3df 0%, #ffe6da 48%, #d6f0fb 100%);
     color: #2b3566;
     text-align: center;
+  }
+
+  // 하늘 위 종이 결
+  .sky::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: var(--grain);
+    opacity: 0.16;
+    mix-blend-mode: multiply;
+  }
+
+  // 로고를 감싸는 아치 (두 겹 선, 아래는 수면으로 열려 있다)
+  .arch {
+    position: absolute;
+    top: 44px;
+    bottom: -40px;
+    left: 50%;
+    width: min(500px, calc(100% - 40px));
+    translate: -50% 0;
+    border: 1.5px solid rgba(43, 53, 102, 0.42);
+    border-bottom: 0;
+    border-radius: 999px 999px 0 0;
+    pointer-events: none;
+
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 6px 6px 0;
+      border: 1px solid rgba(43, 53, 102, 0.2);
+      border-bottom: 0;
+      border-radius: inherit;
+    }
+  }
+
+  .spark {
+    position: absolute;
+    fill: #2b3566;
+    opacity: 0.75;
+    translate: -50% -50%;
+    animation: twinkle 3.4s ease-in-out var(--d) infinite alternate;
+
+    &.pink {
+      fill: #ff7d96;
+    }
+    &.white {
+      fill: #fff;
+      opacity: 0.95;
+    }
+  }
+  @keyframes twinkle {
+    to {
+      opacity: 0.25;
+      scale: 0.8;
+    }
   }
 
   // 뭉게구름: 원 세 개를 겹친 덩어리
@@ -425,16 +496,11 @@
     margin: 0 auto;
   }
 
+  // 종이 카드 (.paper 는 global.scss)
   .glass {
     display: grid;
     gap: 16px;
-    padding: 20px 18px;
-    border-radius: 20px;
-    background: var(--glass);
-    border: 1px solid var(--line);
-    backdrop-filter: blur(14px) saturate(1.2);
-    -webkit-backdrop-filter: blur(14px) saturate(1.2);
-    box-shadow: 0 20px 60px -30px rgba(0, 0, 0, 0.6);
+    padding: 26px 22px 24px;
     scroll-margin-top: 24px;
 
     header {
@@ -452,16 +518,22 @@
     }
   }
 
+  // 타로 카드 번호
   .step {
     flex: none;
     display: grid;
     place-items: center;
-    width: 30px;
-    height: 30px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
-    border: 1px solid var(--line-strong);
-    font-size: 11px;
-    color: var(--biolume);
+    border: 1.5px solid var(--frame-ink);
+    box-shadow: inset 0 0 0 2px var(--paper-bg), inset 0 0 0 3px rgba(49, 80, 138, 0.3);
+    font-family: var(--font-serif);
+    font-size: 16px;
+    font-weight: 600;
+    font-variant-numeric: lining-nums;
+    line-height: 1;
+    color: var(--frame-ink);
   }
 
   .tabs {
@@ -470,7 +542,7 @@
     gap: 6px;
     padding: 4px;
     border-radius: 12px;
-    background: rgba(2, 10, 24, 0.35);
+    background: var(--well);
     border: 1px solid var(--line);
 
     button {
@@ -495,19 +567,14 @@
         opacity: 0.75;
       }
       &.on {
-        background: rgba(255, 255, 255, 0.12);
+        background: #fff;
         color: var(--ink);
+        box-shadow: 0 0 0 1px var(--line-strong), 0 2px 6px -2px rgba(49, 80, 138, 0.3);
       }
     }
   }
 
-  .form {
-    border-color: rgba(255, 77, 109, 0.28);
-    box-shadow:
-      0 20px 60px -30px rgba(0, 0, 0, 0.6),
-      0 0 0 1px rgba(255, 77, 109, 0.06),
-      0 0 60px -20px rgba(255, 77, 109, 0.35);
-  }
+
 
   .notice {
     margin: -4px 0 -6px;
@@ -537,14 +604,14 @@
     margin: 0;
     padding: 10px 12px;
     border-radius: var(--radius-sm);
-    background: rgba(255, 138, 138, 0.1);
-    border: 1px solid rgba(255, 138, 138, 0.3);
-    color: #ffc2c2;
+    background: rgba(214, 69, 93, 0.07);
+    border: 1px solid rgba(214, 69, 93, 0.3);
+    color: var(--danger);
     font-size: 13.5px;
   }
   .msg .example {
-    background: rgba(127, 246, 228, 0.08);
-    border-color: rgba(127, 246, 228, 0.3);
+    background: rgba(31, 138, 150, 0.07);
+    border-color: rgba(31, 138, 150, 0.3);
     color: var(--biolume);
   }
 
@@ -582,7 +649,7 @@
       width: 10px;
       height: 10px;
       border-radius: 3px;
-      border: 1px solid rgba(255, 255, 255, 0.25);
+      border: 1px solid var(--line-strong);
     }
     .sunlight .swatch { background: #40c4ce; }
     .twilight .swatch { background: #0a5884; }
