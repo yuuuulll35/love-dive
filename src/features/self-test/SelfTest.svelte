@@ -69,12 +69,12 @@
 
 {#if stage === 'intro'}
   <div class="intro">
+    <p>두 사람을 떠올리며, 각 문장이 얼마나 가까운지 고르세요.</p>
     <dl class="facts">
       <div><dt class="mono">24</dt><dd>문장</dd></div>
       <div><dt class="mono">3</dt><dd>분</dd></div>
       <div><dt class="mono">5</dt><dd>단계 응답</dd></div>
     </dl>
-    <p>두 사람을 떠올리며, 각 문장이 얼마나 가까운지 고르세요.</p>
     <Button variant="ghost" block onclick={start}>
       테스트 시작하기
       <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7h8M7.5 3.5L11 7l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
