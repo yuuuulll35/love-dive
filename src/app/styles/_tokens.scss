@@ -27,7 +27,10 @@
   --glass: rgba(6, 22, 48, 0.42);
   --glass-strong: rgba(4, 14, 32, 0.72);
 
-  // 붉은 실 (측심줄) — 유일한 강조색
+  // 측심줄: 은회색 줄 (하늘·물속 어디서든 보이게 옅은 테두리)
+  --rope: #b9c1cd;
+  --rope-edge: rgba(30, 40, 60, 0.28);
+  // 강조색
   --thread: #ff4d6d;
   --thread-soft: rgba(255, 77, 109, 0.18);
   --biolume: #7ff6e4;

@@ -1,4 +1,4 @@
-<!-- 측심추: 하트 모양 납추 + 위로 이어지는 붉은 실 -->
+<!-- 측심추: 하트 모양 납추(또는 페어 이미지) + 위로 이어지는 측심줄 -->
 <script lang="ts">
   interface Props {
     /** 실을 위로 얼마나 길게 그릴지 (px) */
@@ -65,8 +65,8 @@
     width: 1.5px;
     height: var(--thread);
     transform: translateX(-50%);
-    background: linear-gradient(to top, var(--thread), rgba(255, 77, 109, 0.85) 60%, rgba(255, 77, 109, 0.35));
-    box-shadow: 0 0 6px rgba(255, 77, 109, 0.5);
+    background: var(--rope);
+    box-shadow: 0 0 0 0.5px var(--rope-edge);
   }
 
   .has-image {

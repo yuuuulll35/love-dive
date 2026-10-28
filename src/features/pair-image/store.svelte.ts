@@ -46,7 +46,7 @@ export async function loadImageFile(file: File): Promise<string> {
       el.onerror = reject;
       el.src = src;
     });
-    // 투명 여백을 잘라 내야 붉은 실이 그림 윗변에 바로 닿는다
+    // 투명 여백을 잘라 내야 측심줄이 그림 윗변에 바로 닿는다
     const box = opaqueBounds(img);
     const scale = Math.min(1, MAX_SIDE / Math.max(box.w, box.h));
     const w = Math.max(1, Math.round(box.w * scale));

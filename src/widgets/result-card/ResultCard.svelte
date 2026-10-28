@@ -65,7 +65,7 @@
     {/if}
     {#if hot && tier !== 'void' && result.kind !== 'float'}<span class="vent" aria-hidden="true"></span>{/if}
 
-    <!-- 페어 이미지(배경 없는 PNG)가 측심추 자리에 붉은 실로 매달린다 -->
+    <!-- 페어 이미지(배경 없는 PNG)가 측심추 자리에 측심줄로 매달린다 -->
     {#if image && tier !== 'void'}
       <div class="hanger" class:floating={result.kind === 'float'} aria-hidden="true">
         <span class="thread"></span>
@@ -313,8 +313,8 @@
   .thread {
     flex: 1;
     width: 2px;
-    background: #ff4d6d;
-    box-shadow: 0 0 6px rgba(255, 77, 109, 0.55);
+    background: var(--rope);
+    box-shadow: 0 0 0 0.5px var(--rope-edge);
   }
   .charm {
     display: block;
