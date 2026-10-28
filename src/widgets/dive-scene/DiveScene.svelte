@@ -336,6 +336,8 @@
   {#if frame.seabedY < 1.2}
     <div class="seabed" style:top="{frame.seabedY * 100}dvh" style:--bed={rgb(seabedColor)} aria-hidden="true">
       <svg viewBox="0 0 400 120" preserveAspectRatio="none">
+        <!-- 뒤쪽 모래 둔덕: 앞 모래 바로 위로 얇게만 비친다 -->
+        <path class="far" d="M0 28C50 20 90 34 150 27S260 18 320 25 380 30 400 24V120H0z" />
         <path class="near" d="M0 34C40 26 80 40 140 32S250 22 300 30 370 40 400 30V120H0z" />
       </svg>
       {#if kind === 'normal'}<SeabedLife zone={result.zone.id} />{/if}
@@ -518,6 +520,10 @@
       display: block;
       width: 100%;
       height: 100%;
+    }
+    .far {
+      fill: var(--bed);
+      opacity: 0.45;
     }
     .near {
       fill: var(--bed);
