@@ -7,6 +7,7 @@
   import ResultCard from '$widgets/result-card/ResultCard.svelte';
   import Button from '$shared/ui/Button.svelte';
   import { sound } from '$shared/lib/sound.svelte';
+  import { pairImage } from '$features/pair-image/store.svelte';
   import { ERROR_COPY } from '$shared/config/copy';
 
   interface Props {
@@ -60,7 +61,7 @@
   {#if showResult}
     <main class="result" aria-live="polite">
       <div class="stack">
-        <ResultCard result={r} bind:node={card} />
+        <ResultCard result={r} image={pairImage.url} bind:node={card} />
         <ShareActions
           {card}
           filename="love-dive-{r.kind === 'void' ? 'abyss' : Math.round(r.depth) + 'm'}.png"

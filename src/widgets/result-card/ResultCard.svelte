@@ -4,10 +4,12 @@
 
   interface Props {
     result: MeasureResult;
+    /** 페어 이미지 (data URL) */
+    image?: string | null;
     /** 캡처 대상 노드 */
     node?: HTMLElement;
   }
-  let { result, node = $bindable() }: Props = $props();
+  let { result, image = null, node = $bindable() }: Props = $props();
 
   const MAX = 10935;
   const pos = (d: number) => Math.log1p(Math.max(0, d)) / Math.log1p(MAX);
@@ -35,7 +37,12 @@
     <span>SOUNDING LOG</span>
   </header>
 
-  {#if result.pair}
+  {#if image}
+    <div class="pair-row">
+      <img class="portrait" src={image} alt={result.pair ? `${result.pair} 이미지` : '페어 이미지'} />
+      {#if result.pair}<p class="pair serif">{result.pair}</p>{/if}
+    </div>
+  {:else if result.pair}
     <p class="pair serif">{result.pair}</p>
   {/if}
 
@@ -177,6 +184,34 @@
     margin: -6px 0 -10px;
     font-size: 16px;
     color: var(--fg-dim);
+  }
+
+  .pair-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: -4px 0 -6px;
+
+    .pair {
+      margin: 0;
+      min-width: 0;
+      font-size: 17px;
+      color: var(--fg);
+    }
+  }
+
+  .portrait {
+    flex: none;
+    width: 76px;
+    // 이미지 저장 시 height 가 복사되지 않으므로 비율로 크기를 고정
+    aspect-ratio: 1;
+    border-radius: 18px;
+    object-fit: cover;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    box-shadow:
+      0 0 0 3px rgba(255, 77, 109, 0.18),
+      0 10px 24px -10px rgba(0, 0, 0, 0.6);
   }
 
   .depth {

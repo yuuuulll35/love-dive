@@ -16,10 +16,10 @@ npm run build    # dist/ 를 그대로 정적 호스팅 (base: './' 라 하위 �
 | 레이어 | 내용 |
 |---|---|
 | `app/` | 엔트리, 해시 라우터(`#/`, `#/dive/<token>`), 글로벌 스타일·토큰 |
-| `pages/` | `input`(하늘·수면 히어로 + 3단계 안내 + 폼), `dive`(연출 + 결과) |
+| `pages/` | `input`(하늘·수면 히어로 + 코드 받기[AI 프롬프트 / 셀프 테스트] + 측정 폼), `dive`(연출 + 결과) |
 | `widgets/dive-scene` | 타임라인(순수 함수), 캔버스 입자, 생물 SVG, 수심 게이지, 측심추 |
 | `widgets/result-card` | 결과 카드 (온도·부유·측정 불가 테마) |
-| `features/` | `decode-code`, `share-result`(토큰·링크·이미지 저장), `ooc-prompt`(변형본 복사) |
+| `features/` | `decode-code`, `share-result`(토큰·링크·이미지 저장), `ooc-prompt`(프롬프트 복사), `self-test`(24문항 셀프 테스트), `pair-image` |
 | `entities/abyss` | `codec` · `depth` · `zones` · `archetype` · `temperature` · `pair` · `measure` |
 | `shared/` | FNV-1a, 이징, 시드 RNG, WebAudio 효과음, 인코딩 테이블 복원, 문구 풀(`config/copy.ts`) |
 
@@ -42,6 +42,9 @@ XOR + 역순 base64로 인코딩해 `virtual:abyss-tables`로 넘긴다. 번들�
 - **연출 길이**: `2 + 6·√(depth/10935)`초 (최소 2s, 최대 8s). 카운터 이징은
   `1 − (1−t)⁴(1+4t)` — 정지에서 출발해 t=0.25에 최고 속도, 이후 길게 감속.
 - **효과음**: 에셋 없이 WebAudio로 합성 (입수·수중 드론·구간 핑·착저·글리치). 기본 OFF.
+- **셀프 테스트**: 12축 × 2문항(일부 역문항), 7점 척도. 축마다 두 답의 합(0~12)을 0~9로 환산하고,
+  정중앙은 OOC의 '근거 부족 = 4'에 맞춰 4로 내린다. 노이즈 2자리는 무작위.
+- **페어 이미지**: 긴 변 720px로 줄여 메모리에만 둔다. 서버·URL로 보내지 않으므로 공유 링크로 열면 이미지는 없다.
 - **이미지 저장**: html-to-image. 카드에 쓰인 글자가 포함된 웹폰트 조각만 골라 인라인하고,
   라이브 화면과 줄바꿈이 어긋나지 않도록 높이 계열 속성은 복제하지 않는다.
 
