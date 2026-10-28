@@ -233,6 +233,8 @@
         </Button>
       </form>
     </div>
+
+    <p class="credit">@gimyunseul92364</p>
   </div>
 </main>
 
@@ -457,6 +459,14 @@
     position: relative;
     padding: 8px var(--gutter) calc(64px + env(safe-area-inset-bottom));
     background: linear-gradient(to bottom, var(--sea-shallow) 0%, var(--sea-twilight) 30%, #0a2a5c 65%, var(--sea-deep) 100%);
+  }
+
+  .credit {
+    margin: 36px 0 0;
+    text-align: center;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: var(--ink-faint);
   }
 
   .col {

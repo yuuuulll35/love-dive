@@ -94,6 +94,7 @@
           filename="love-dive-{r.kind === 'void' ? 'abyss' : Math.round(r.depth) + 'm'}.png"
           onretry={retry}
           onreplay={replay}
+          hasImage={!!pairImage.for(token)}
         />
       </div>
     </main>
