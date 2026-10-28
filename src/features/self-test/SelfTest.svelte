@@ -464,10 +464,10 @@
     }
   }
 
+  // 투명도는 건드리지 않는다: 애니메이션이 멈추는 브라우저에서 문항이 안 보인 채 클릭만 되는 일이 있었다
   @keyframes rise {
     from {
-      opacity: 0;
-      transform: translateY(10px);
+      transform: translateY(8px);
     }
   }
   @keyframes pop {
