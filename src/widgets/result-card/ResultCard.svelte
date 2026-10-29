@@ -58,7 +58,7 @@
 
   const STAR = 'M12 0C12.8 7 17 11.2 24 12 17 12.8 12.8 17 12 24 11.2 17 7 12.8 0 12 7 11.2 11.2 7 12 0Z';
 
-  // 이미지 저장 시 height 는 복사되지 않으므로, 이 카드는 높이를 inset·aspect-ratio·padding 으로만 잡는다
+  // 이미지 저장 시 height 는 복사되지 않고 일부 브라우저는 aspect-ratio 도 놓치므로, 이 카드는 크기를 inset·padding 으로만 잡는다
 </script>
 
 <article
@@ -72,7 +72,7 @@
   aria-label="측정 결과"
 >
   <div class="frame">
-    {#each ['tl', 'tr', 'bl', 'br'] as c (c)}
+    {#each ['tl', 'tr'] as c (c)}
       <svg class="corner {c}" viewBox="0 0 24 24" aria-hidden="true"><path d={STAR} /></svg>
     {/each}
 
@@ -91,53 +91,55 @@
         </svg>
       {/each}
       <div class="arch" class:with-img={!!image}>
-        {#if result.kind === 'float'}
-          <svg class="wave" viewBox="0 0 400 24" preserveAspectRatio="none" aria-hidden="true">
-            <path d="M0 10 Q25 2 50 10 T100 10 T150 10 T200 10 T250 10 T300 10 T350 10 T400 10 V24 H0Z" />
-          </svg>
-        {:else if tier !== 'void'}
-          <span class="bloom" aria-hidden="true"></span>
-          {#each BOKEH[tier] as [x, y, s], i (i)}
-            <span class="bokeh" style:left="{x}%" style:top="{y}%" style:width="{s}px" aria-hidden="true"></span>
-          {/each}
-          {#if tier === 'deep' || tier === 'abyss'}
-            {#each SNOW as [x, y], i (i)}
-              <span class="snow" style:left="{x}%" style:top="{y}%" style:--d="{(i % 5) * 1.3}s" aria-hidden="true"></span>
+        <div class="arch-in">
+          {#if result.kind === 'float'}
+            <svg class="wave" viewBox="0 0 400 24" preserveAspectRatio="none" aria-hidden="true">
+              <path d="M0 10 Q25 2 50 10 T100 10 T150 10 T200 10 T250 10 T300 10 T350 10 T400 10 V24 H0Z" />
+            </svg>
+          {:else if tier !== 'void'}
+            <span class="bloom" aria-hidden="true"></span>
+            {#each BOKEH[tier] as [x, y, s], i (i)}
+              <span class="bokeh" style:left="{x}%" style:top="{y}%" style:padding="{s / 2}px" aria-hidden="true"></span>
             {/each}
-          {/if}
-          {#if tier === 'abyss'}
-            {#each GLINTS as [x, y], i (i)}
-              <span class="glint" style:left="{x}%" style:top="{y}%" aria-hidden="true"></span>
+            {#if tier === 'deep' || tier === 'abyss'}
+              {#each SNOW as [x, y], i (i)}
+                <span class="snow" style:left="{x}%" style:top="{y}%" style:--d="{(i % 5) * 1.3}s" aria-hidden="true"></span>
+              {/each}
+            {/if}
+            {#if tier === 'abyss'}
+              {#each GLINTS as [x, y], i (i)}
+                <span class="glint" style:left="{x}%" style:top="{y}%" aria-hidden="true"></span>
+              {/each}
+            {/if}
+            {#each TWINKLE[tier] as [x, y, s], i (i)}
+              <svg class="twinkle" style:left="{x}%" style:top="{y}%" style:width="{s}px" style:--d="{i * 0.9}s" viewBox="0 0 24 24" aria-hidden="true"><path d={STAR} /></svg>
             {/each}
+            {#each BUBBLES[tier] as [x, y, s], i (i)}
+              <span class="bubble" style:left="{x}%" style:top="{y}%" style:padding="{s / 2}px" style:--d="{i * 0.7}s" aria-hidden="true"></span>
+            {/each}
+            <svg class="bed" viewBox="0 0 400 44" preserveAspectRatio="none" aria-hidden="true">
+              <path d="M0 24C60 10 110 28 180 20S300 6 400 22V44H0z" />
+            </svg>
           {/if}
-          {#each TWINKLE[tier] as [x, y, s], i (i)}
-            <svg class="twinkle" style:left="{x}%" style:top="{y}%" style:width="{s}px" style:--d="{i * 0.9}s" viewBox="0 0 24 24" aria-hidden="true"><path d={STAR} /></svg>
-          {/each}
-          {#each BUBBLES[tier] as [x, y, s], i (i)}
-            <span class="bubble" style:left="{x}%" style:top="{y}%" style:width="{s}px" style:--d="{i * 0.7}s" aria-hidden="true"></span>
-          {/each}
-          <svg class="bed" viewBox="0 0 400 44" preserveAspectRatio="none" aria-hidden="true">
-            <path d="M0 24C60 10 110 28 180 20S300 6 400 22V44H0z" />
-          </svg>
-        {/if}
-        {#if hot && tier !== 'void' && result.kind !== 'float'}<span class="vent" aria-hidden="true"></span>{/if}
+          {#if hot && tier !== 'void' && result.kind !== 'float'}<span class="vent" aria-hidden="true"></span>{/if}
 
-        <!-- 페어 이미지(배경 없는 PNG)가 측심줄에 매달린다 -->
-        {#if image && tier !== 'void'}
-          <div class="hanger" class:floating={result.kind === 'float'} aria-hidden="true">
-            <span class="thread"></span>
-            <img class="charm" src={image} alt="" />
-          </div>
-        {/if}
-        <!-- 물빛 베일: 이미지를 물속에 담가 글자보다 한 걸음 뒤로 -->
-        {#if image && tier !== 'void'}<span class="veil" class:float={result.kind === 'float'} aria-hidden="true"></span>{/if}
+          <!-- 페어 이미지(배경 없는 PNG)가 측심줄에 매달린다 -->
+          {#if image && tier !== 'void'}
+            <div class="hanger" class:floating={result.kind === 'float'} aria-hidden="true">
+              <span class="thread"></span>
+              <img class="charm" src={image} alt="" />
+            </div>
+          {/if}
+          <!-- 물빛 베일: 이미지를 물속에 담가 글자보다 한 걸음 뒤로 -->
+          {#if image && tier !== 'void'}<span class="veil" class:float={result.kind === 'float'} aria-hidden="true"></span>{/if}
 
-        {#if result.kind === 'void'}
-          <p class="depth glitch">측정 불가</p>
-        {:else}
-          <p class="depth">{formatDepth(result.depth)}<span class="unit">m</span></p>
-          <p class="zone">{result.zone.name}</p>
-        {/if}
+          {#if result.kind === 'void'}
+            <p class="depth glitch">측정 불가</p>
+          {:else}
+            <p class="depth">{formatDepth(result.depth)}<span class="unit">m</span></p>
+            <p class="zone">{result.zone.name}</p>
+          {/if}
+        </div>
       </div>
     </div>
 
@@ -188,7 +190,12 @@
       </div>
     </div>
 
-    <p class="brand">LOVE DIVE</p>
+    <!-- 아래 모서리 별은 흐름 안에 둔다: 저장 이미지(복제본)는 카드가 몇 px 짧아져서, 바닥 기준 절대 위치면 카드 밖으로 빠졌다 -->
+    <div class="foot">
+      <svg class="corner-b" viewBox="0 0 24 24" aria-hidden="true"><path d={STAR} /></svg>
+      <p class="brand">LOVE DIVE</p>
+      <svg class="corner-b" viewBox="0 0 24 24" aria-hidden="true"><path d={STAR} /></svg>
+    </div>
   </div>
 </article>
 
@@ -246,8 +253,6 @@
 
     &.tl { top: 8px; left: 8px; }
     &.tr { top: 8px; right: 8px; }
-    &.bl { bottom: 8px; left: 8px; }
-    &.br { bottom: 8px; right: 8px; }
   }
 
   .arcana {
@@ -310,31 +315,37 @@
     }
   }
 
+  // 창 높이는 aspect-ratio 대신 padding 비율로 잡는다: 이미지 저장(html-to-image)은 높이를 복사하지 않는데,
+  // 일부 브라우저(iOS 사파리 등)는 복제본에서 aspect-ratio 를 무시해 창이 납작하게 찌그러졌다
   .arch {
     position: relative;
     overflow: hidden;
-    isolation: isolate;
-    display: grid;
-    justify-items: center;
-    align-content: center;
-    gap: 6px;
-    aspect-ratio: 5 / 5.4;
+    padding-top: 108%;
     border-radius: 999px 999px 7px 7px;
     background: linear-gradient(to bottom, var(--top), var(--bottom));
     color: #fff;
     text-align: center;
+  }
+  .arch-in {
+    position: absolute;
+    inset: 0;
+    isolation: isolate;
+    container-type: size;
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: 6px;
+  }
+  // 페어 이미지가 있으면 글자는 창 위쪽, 이미지는 아래쪽에 두어 겹치지 않게 (cqh = 창 높이 %)
+  .with-img .arch-in {
+    align-content: start;
+    padding-top: 10%;
 
-    // 페어 이미지가 있으면 글자는 창 위쪽, 이미지는 아래쪽에 두어 겹치지 않게 (cqh = 창 높이 %)
-    &.with-img {
-      container-type: size;
-      align-content: start;
-      padding-top: 9cqh;
-
-      .depth {
-        font-size: 19cqh;
-      }
+    .depth {
+      font-size: 19cqh;
     }
   }
+
   .light .arch {
     background: linear-gradient(to bottom, #d9f6f4, #9fdfe6 55%, var(--bottom));
     color: #1f3460;
@@ -417,7 +428,6 @@
   .bokeh {
     position: absolute;
     z-index: -2;
-    aspect-ratio: 1;
     border-radius: 50%;
     background: radial-gradient(circle, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0) 70%);
     transform: translate(-50%, -50%);
@@ -429,8 +439,7 @@
   .snow {
     position: absolute;
     z-index: -1;
-    width: 2px;
-    aspect-ratio: 1;
+    padding: 1px;
     border-radius: 50%;
     background: rgba(220, 232, 255, 0.45);
     animation: drift 7s ease-in-out var(--d) infinite alternate;
@@ -442,7 +451,6 @@
   .bubble {
     position: absolute;
     z-index: -1;
-    aspect-ratio: 1;
     border-radius: 50%;
     border: 1px solid rgba(255, 255, 255, 0.75);
     background: radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.9) 0 12%, rgba(255, 255, 255, 0.18) 34%, rgba(255, 255, 255, 0.04) 70%);
@@ -470,8 +478,7 @@
   .glint {
     position: absolute;
     z-index: -1;
-    width: 3px;
-    aspect-ratio: 1;
+    padding: 1.5px;
     border-radius: 50%;
     background: #7ff6e4;
     box-shadow: 0 0 8px 2px rgba(127, 246, 228, 0.55);
@@ -593,8 +600,7 @@
       content: '';
       position: absolute;
       top: 50%;
-      width: 7px;
-      aspect-ratio: 1;
+      padding: 3.5px;
       background: var(--frame);
       transform: translateY(-50%) rotate(45deg);
     }
@@ -737,8 +743,21 @@
     }
   }
 
+  .foot {
+    justify-self: stretch;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin: 16px -10px -8px;
+  }
+  .corner-b {
+    flex: none;
+    width: 12px;
+    fill: var(--frame);
+  }
   .brand {
-    margin: 16px 0 0;
+    margin: 0;
+    align-self: center;
     font-family: var(--font-logo);
     font-weight: 600;
     font-size: 11px;

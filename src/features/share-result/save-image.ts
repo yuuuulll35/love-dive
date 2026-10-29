@@ -76,7 +76,8 @@ async function toDataUrl(url: string): Promise<string> {
  * html-to-image 는 font-size 를 내림(15.5px → 14.9px)하면서 높이는 원본 px 그대로 복사한다.
  * 그러면 줄바꿈이 달라져 빈 줄이 생기므로, 높이 계열 속성은 빼고 복제본이 스스로 흐르게 한다.
  */
-// grid 컨테이너는 계산된 행 높이(px)까지 복사되므로 함께 뺀다
+// grid 컨테이너는 계산된 행 높이(px)까지 복사되므로 함께 뺀다.
+// (aspect-ratio 는 iOS 사파리 등에서 복제본에 적용되지 않을 수 있어, 카드의 박스 크기는 padding 으로 잡는다)
 const SKIP_PROPS = new Set(['height', 'block-size', 'min-height', 'min-block-size', 'grid-template-rows']);
 function styleProperties(): string[] {
   return Array.from(getComputedStyle(document.documentElement)).filter((p) => !SKIP_PROPS.has(p));
