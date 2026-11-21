@@ -1,0 +1,53 @@
+// 디자인 토큰 — 사이트는 수중 몰입형이라 단일(다크 수중) 테마. 하늘 영역만 밝다.
+:root {
+  // 귀여운 서체는 LOVE DIVE 로고에만. 나머지는 전부 Pretendard(가변 굵기)로 깔끔하게
+  --font-logo: 'Fredoka', 'Pretendard Variable', sans-serif;
+  --font-sans: 'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', system-ui, sans-serif;
+  // 결과 카드(타로·우표 감성)의 숫자·칭호에만 쓰는 세리프
+  --font-serif: 'Cormorant Garamond', 'Gowun Batang', serif;
+  --font-kserif: 'Gowun Batang', serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  // 하늘 (새벽빛)
+  --sky-top: #ffd3df;
+  --sky-mid: #ffe6da;
+  --sky-bottom: #d6f0fb;
+  --sky-ink: #2b3566;
+  --sky-ink-dim: rgba(15, 43, 59, 0.62);
+
+  // 물
+  --sea-surface: #40c4ce;
+  --sea-shallow: #1896b0;
+  --sea-twilight: #0a5884;
+  --sea-deep: #081a42;
+  --sea-abyss: #030610;
+
+  --ink: #eaf3f6;
+  --ink-dim: rgba(234, 243, 246, 0.66);
+  --ink-faint: rgba(234, 243, 246, 0.38);
+  --line: rgba(234, 243, 246, 0.16);
+  --line-strong: rgba(234, 243, 246, 0.32);
+  --glass: rgba(6, 22, 48, 0.42);
+  --glass-strong: rgba(4, 14, 32, 0.72);
+
+  // 종이 카드
+  --paper-bg: #fbf6ee;
+  --frame-ink: #31508a;
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.45 0 0 0 0 0.4 0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+
+  // 측심줄: 은회색 줄 (하늘·물속 어디서든 보이게 옅은 테두리)
+  --rope: #b9c1cd;
+  --rope-edge: rgba(30, 40, 60, 0.28);
+  // 강조색
+  --thread: #ff4d6d;
+  --thread-soft: rgba(255, 77, 109, 0.18);
+  --biolume: #7ff6e4;
+  --vent: #ff6a3d;
+  --danger: #ff8a8a;
+
+  --radius: 14px;
+  --radius-sm: 10px;
+  --gutter: 16px;
+  --maxw: 520px;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
